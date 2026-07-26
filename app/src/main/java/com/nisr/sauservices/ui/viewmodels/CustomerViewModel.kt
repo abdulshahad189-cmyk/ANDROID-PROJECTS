@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.model.OrderModel
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CustomerViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
     private val userId = repository.getCurrentUserId() ?: ""
 
     private val _myBookings = MutableStateFlow<List<BookingModel>>(emptyList())
@@ -44,7 +44,7 @@ class CustomerViewModel : ViewModel() {
     fun placeBooking(booking: BookingModel) {
         viewModelScope.launch {
             _isLoading.value = true
-            repository.bookSrv(booking)
+            repository.bookService(booking)
             _isLoading.value = false
         }
     }

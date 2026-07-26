@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.data.model.CartModel
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -20,7 +20,7 @@ data class BookingItem(
 )
 
 class BookingsViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
 
     private val _bookingResult = MutableStateFlow<Result<String>?>(null)
     val bookingResult = _bookingResult.asStateFlow()
@@ -48,11 +48,11 @@ class BookingsViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             val booking = BookingModel(
-                customerId = repository.getCurrentUserId() ?: "",
-                serviceId = serviceId,
-                serviceName = serviceName,
-                scheduledDate = date,
-                scheduledTime = time,
+                user_id = repository.getCurrentUserId() ?: "",
+                service_id = serviceId,
+                service_name = serviceName,
+                scheduled_date = date,
+                scheduled_time = time,
                 address = address,
                 status = "pending"
             )
@@ -74,18 +74,11 @@ class BookingsViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             val order = OrderModel(
-                customerId = repository.getCurrentUserId() ?: "",
+                user_id = repository.getCurrentUserId() ?: "",
                 items = items,
-                totalPrice = amount,
+                total_amount = amount,
                 address = address,
-                orderStatus = "pending",
-                serviceName = serviceName,
-                category = category,
-                subcategory = subcategory,
-                scheduleDate = date,
-                scheduleTime = time,
-                amount = amount,
-                paymentMethod = paymentMethod
+                status = "pending"
             )
             val result = repository.placeOrder(order)
             _bookingResult.value = result
@@ -99,11 +92,11 @@ class BookingsViewModel : ViewModel() {
                 _myBookings.value = list
                 _bookingsFlow.value = list.map {
                     BookingItem(
-                        id = it.bookingId,
-                        serviceName = it.serviceName,
+                        id = it.id,
+                        serviceName = it.service_name,
                         price = "₹0.0",
-                        date = it.scheduledDate,
-                        time = it.scheduledTime,
+                        date = it.scheduled_date,
+                        time = it.scheduled_time,
                         status = it.status
                     )
                 }

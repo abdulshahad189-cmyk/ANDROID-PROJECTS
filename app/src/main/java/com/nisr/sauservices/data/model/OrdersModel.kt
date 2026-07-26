@@ -1,3 +1,5 @@
 package com.nisr.sauservices.data.model
 
-// This file is deprecated. OrderModel has been moved to FirebaseModels.kt to resolve redeclaration issues.
+/**
+ * This file is deprecated. Order models are now in SupabaseModels.kt or CommonModels.kt
+ */

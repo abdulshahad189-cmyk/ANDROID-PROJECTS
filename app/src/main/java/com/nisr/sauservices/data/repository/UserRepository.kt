@@ -1,42 +1,57 @@
 package com.nisr.sauservices.data.repository
 
-import com.google.firebase.auth.AuthCredential
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.User
-import kotlinx.coroutines.tasks.await
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class UserRepository {
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val auth = SupabaseClient.client.auth
+    private val postgrest = SupabaseClient.client.postgrest
 
-    fun getCurrentUser(): FirebaseUser? = auth.currentUser
+    fun getCurrentUser() = auth.currentUserOrNull()
 
-    suspend fun signIn(email: String, password: String): Result<FirebaseUser?> {
+    suspend fun signIn(email: String, password: String): Result<Unit> {
         return try {
-            val result = auth.signInWithEmailAndPassword(email, password).await()
-            Result.success(result.user)
+            auth.signInWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun signInWithCredential(credential: AuthCredential): Result<FirebaseUser?> {
+    suspend fun signUp(email: String, password: String, userData: User): Result<Unit> {
         return try {
-            val result = auth.signInWithCredential(credential).await()
-            Result.success(result.user)
+            auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            val userId = auth.currentUserOrNull()?.id ?: throw Exception("User creation failed")
+            val userWithId = userData.copy(id = userId)
+            
+            withContext(Dispatchers.IO) {
+                postgrest["users"].insert(userWithId)
+            }
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun signUp(email: String, password: String, userData: Map<String, Any>): Result<FirebaseUser?> {
+    suspend fun getUserData(uid: String): Result<User?> {
         return try {
-            val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val user = result.user
-            if (user != null) {
-                firestore.collection("users").document(user.uid).set(userData).await()
+            val user = withContext(Dispatchers.IO) {
+                postgrest["users"].select {
+                    filter {
+                        eq("id", uid)
+                    }
+                }.decodeSingleOrNull<User>()
             }
             Result.success(user)
         } catch (e: Exception) {
@@ -44,29 +59,18 @@ class UserRepository {
         }
     }
 
-    fun registerUser(user: User) {
-        firestore.collection("users").document(user.id).set(user)
-    }
-
-    suspend fun getUserData(uid: String): Result<Map<String, Any>?> {
+    suspend fun saveUserData(user: User): Result<Unit> {
         return try {
-            val document = firestore.collection("users").document(uid).get().await()
-            Result.success(document.data)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun saveUserData(uid: String, userData: Map<String, Any>): Result<Unit> {
-        return try {
-            firestore.collection("users").document(uid).set(userData).await()
+            withContext(Dispatchers.IO) {
+                postgrest["users"].upsert(user)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    fun logout() {
+    suspend fun logout() {
         auth.signOut()
     }
 }

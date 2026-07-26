@@ -5,14 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.Delivery
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.repository.DashboardRepository
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class DeliveryViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
     private val dashboardRepository = DashboardRepository()
 
     private val _deliveries = MutableStateFlow<List<Delivery>>(emptyList())

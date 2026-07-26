@@ -45,18 +45,9 @@
 
         <!-- Location Service for Delivery Tracking -->
         <service
-            android:name=".service.LocationService"
+            android:name=".location.LocationService"
             android:foregroundServiceType="location"
             android:exported="false" />
-
-        <!-- Firebase Messaging Service for Notifications -->
-        <service
-            android:name=".service.MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
 
     </application>
 

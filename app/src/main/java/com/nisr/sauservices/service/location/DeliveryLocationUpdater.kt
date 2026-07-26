@@ -1,17 +1,31 @@
 package com.nisr.sauservices.service.location
 
-import com.google.firebase.database.FirebaseDatabase
+import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class DeliveryLocationUpdater(private val id: String, private val isWorker: Boolean = false) {
-    private val database = FirebaseDatabase.getInstance(FirebasePaths.DB_URL)
-    private val path = if (isWorker) FirebasePaths.WORKER_LOCATIONS else FirebasePaths.DELIVERY_LOCATIONS
+    private val postgrest = SupabaseClient.client.postgrest
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun updateLocation(lat: Double, lng: Double) {
+        val table = if (isWorker) "worker_locations" else "delivery_locations"
         val locationMap = mapOf(
-            "lat" to lat,
-            "lng" to lng,
-            "timestamp" to System.currentTimeMillis()
+            "user_id" to id,
+            "latitude" to lat,
+            "longitude" to lng,
+            "updated_at" to System.currentTimeMillis()
         )
-        database.getReference(path).child(id).setValue(locationMap)
+        
+        scope.launch {
+            try {
+                postgrest[table].upsert(locationMap)
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
     }
 }

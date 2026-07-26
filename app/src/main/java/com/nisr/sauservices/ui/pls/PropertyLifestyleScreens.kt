@@ -22,12 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.data.model.PLSBooking
 import com.nisr.sauservices.data.model.PLSService
 import com.nisr.sauservices.navigation.Routes
 import com.nisr.sauservices.ui.viewmodels.PropertyLifestyleViewModel
+import io.github.jan.supabase.gotrue.auth
 import java.util.*
 
 private val PrimaryBlue = Color(0xFF1E3A8A)
@@ -330,17 +331,17 @@ fun PLSBookingScreen(
                         Toast.makeText(context, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
                     } else {
                         val booking = PLSBooking(
-                            userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                            userName = name,
-                            userPhone = phone,
-                            userAddress = address,
-                            serviceName = service.name,
+                            user_id = SupabaseClient.client.auth.currentUserOrNull()?.id ?: "",
+                            user_name = name,
+                            user_phone = phone,
+                            user_address = address,
+                            service_name = service.name,
                             date = selectedDate,
-                            timeSlot = selectedTimeSlot,
-                            totalPrice = service.price * (duration.toDoubleOrNull() ?: 1.0),
-                            guestsCount = guests.toIntOrNull(),
+                            time_slot = selectedTimeSlot,
+                            total_price = service.price * (duration.toDoubleOrNull() ?: 1.0),
+                            guests_count = guests.toIntOrNull(),
                             duration = duration.toIntOrNull(),
-                            areaSqft = area.toDoubleOrNull(),
+                            area_sqft = area.toDoubleOrNull(),
                             requirements = notes
                         )
                         viewModel.setCurrentBooking(booking)
@@ -385,12 +386,12 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                     color = Surface
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(b.serviceName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("${b.date} • ${b.timeSlot}", color = Color.Gray)
+                        Text(b.service_name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("${b.date} • ${b.time_slot}", color = Color.Gray)
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Base Price")
-                            Text("₹${b.totalPrice}")
+                            Text("₹${b.total_price}")
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Service Fee")
@@ -399,7 +400,7 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Total", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                            Text("₹${b.totalPrice}", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryBlue)
+                            Text("₹${b.total_price}", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryBlue)
                         }
                     }
                 }
@@ -421,9 +422,8 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = { 
-                        // Simulate payment validation/processing
                         if (paymentMethod.isNotEmpty()) {
-                            viewModel.placeBooking(b.copy(paymentMethod = paymentMethod))
+                            viewModel.placeBooking(b.copy(payment_method = paymentMethod))
                         } else {
                             Toast.makeText(context, "Please select a payment method", Toast.LENGTH_SHORT).show()
                         }
@@ -445,8 +445,8 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                 popUpTo(Routes.PLS_MAIN) { inclusive = false }
             }
             viewModel.resetBookingResult()
-        } else if (result?.isFailure == true) {
-            Toast.makeText(context, "Booking Failed: ${result?.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+        } else if (result?.isSuccess == false) {
+            Toast.makeText(context, "Booking Failed: ${result?.message}", Toast.LENGTH_SHORT).show()
             viewModel.resetBookingResult()
         }
     }
@@ -478,7 +478,7 @@ fun PLSSuccessScreen(navController: NavController, viewModel: PropertyLifestyleV
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Service", color = Color.Gray)
-                        Text(b.serviceName, fontWeight = FontWeight.Bold)
+                        Text(b.service_name, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -488,7 +488,7 @@ fun PLSSuccessScreen(navController: NavController, viewModel: PropertyLifestyleV
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Time", color = Color.Gray)
-                        Text(b.timeSlot, fontWeight = FontWeight.Bold)
+                        Text(b.time_slot, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

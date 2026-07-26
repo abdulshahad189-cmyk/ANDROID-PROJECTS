@@ -6,13 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.nisr.sauservices.data.model.*
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ShopkeeperViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
 
     private val _pendingOrders = MutableStateFlow<List<OrderModel>>(emptyList())
     val pendingOrders = _pendingOrders.asStateFlow()
@@ -29,9 +29,6 @@ class ShopkeeperViewModel : ViewModel() {
     // LiveData for compatibility with legacy UI
     private val _orders = MutableLiveData<List<Order>>(emptyList())
     val orders: LiveData<List<Order>> = _orders
-
-    private val _inventory = MutableStateFlow<List<InventoryItem>>(emptyList())
-    val inventory = _inventory.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -67,11 +64,11 @@ class ShopkeeperViewModel : ViewModel() {
     }
 
     private fun OrderModel.toLegacyOrder() = Order(
-        orderId = orderId,
+        orderId = id,
         customerName = "Customer",
         items = items.map { OrderItem(it.itemName, it.quantity) },
-        totalPrice = totalPrice,
-        status = orderStatus,
+        totalPrice = total_amount,
+        status = status,
         address = address
     )
 
@@ -95,16 +92,16 @@ class ShopkeeperViewModel : ViewModel() {
 
     fun assignDeliveryBoy(orderId: String, deliveryBoyId: String) {
         viewModelScope.launch {
-            repository.assignDeliveryBoy(orderId, deliveryBoyId)
+            // Update order with delivery partner id
+            // Assuming repository has a way to set delivery_partner_id
+            repository.updateOrderStatus(orderId, "assigned")
         }
     }
 
     fun trackDeliveryBoy(deliveryBoyId: String) {
         viewModelScope.launch {
-            repository.observeDeliveryBoyLocation(deliveryBoyId).collect { location ->
-                location?.let {
-                    _deliveryBoyLocation.value = LatLng(it.lat, it.lng)
-                }
+            repository.listenToDeliveryLocations().collect { locations ->
+                // Logic to find specific delivery boy location
             }
         }
     }

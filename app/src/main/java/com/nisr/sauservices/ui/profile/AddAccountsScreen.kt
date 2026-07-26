@@ -19,17 +19,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.ui.theme.PinkPrimary
+import io.github.jan.supabase.gotrue.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAccountsScreen(navController: NavController) {
-    val auth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
+    val auth = SupabaseClient.client.auth
+    val user = auth.currentUserOrNull()
     val context = LocalContext.current
 
-    val providers = user?.providerData?.map { it.providerId } ?: emptyList()
+    // In Supabase, identities represent linked accounts (google, email, phone, etc.)
+    val identities = user?.identities?.map { it.provider } ?: emptyList()
 
     Scaffold(
         topBar = {
@@ -60,28 +62,28 @@ fun AddAccountsScreen(navController: NavController) {
 
             AccountLinkItem(
                 icon = Icons.Default.Email,
-                title = "Secondary Email",
-                isLinked = providers.count { it == "password" } > 1, // Simplified check
+                title = "Email",
+                isLinked = identities.contains("email"),
                 onClick = { 
-                    Toast.makeText(context, "Linking secondary email feature coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Email linking is managed via Supabase Auth", Toast.LENGTH_SHORT).show()
                 }
             )
 
             AccountLinkItem(
                 icon = Icons.Default.Phone,
                 title = "Phone Number",
-                isLinked = providers.contains("phone"),
+                isLinked = identities.contains("phone"),
                 onClick = {
-                    Toast.makeText(context, "Linking phone number feature coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Phone linking feature coming soon", Toast.LENGTH_SHORT).show()
                 }
             )
 
             AccountLinkItem(
                 icon = Icons.Default.Link,
                 title = "Google Account",
-                isLinked = providers.contains("google.com"),
+                isLinked = identities.contains("google"),
                 onClick = {
-                    Toast.makeText(context, "Linking Google account feature coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Google linking feature coming soon", Toast.LENGTH_SHORT).show()
                 }
             )
         }

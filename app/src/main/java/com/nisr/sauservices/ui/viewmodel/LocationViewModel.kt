@@ -10,12 +10,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class LocationViewModel : ViewModel() {
@@ -24,9 +26,8 @@ class LocationViewModel : ViewModel() {
         private set
 
     private var geocodeJob: Job? = null
-    private val dbUrl = "https://sau-services-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    private val database = FirebaseDatabase.getInstance(dbUrl).reference
-    private val auth = FirebaseAuth.getInstance()
+    private val auth = SupabaseClient.client.auth
+    private val postgrest = SupabaseClient.client.postgrest
 
     data class LocationUiState(
         val centerLocation: LatLng = LatLng(20.5937, 78.9629), // Default India
@@ -64,7 +65,7 @@ class LocationViewModel : ViewModel() {
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
-                val fullAddress = address.getAddressLine(0)
+                val fullAddress = address.getAddressLine(0) ?: ""
                 val landmark = address.featureName ?: ""
                 
                 viewModelScope.launch(Dispatchers.Main) {
@@ -103,24 +104,35 @@ class LocationViewModel : ViewModel() {
     }
 
     fun confirmLocation(onSuccess: () -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUserOrNull()?.id ?: return
         
         // Prevent saving invalid addresses
         if (uiState.address == "Fetching address..." || uiState.isFetchingAddress) return
 
-        val locationData = mapOf(
-            "address" to uiState.address,
-            "latitude" to uiState.centerLocation.latitude,
-            "longitude" to uiState.centerLocation.longitude,
-            "lastUpdated" to System.currentTimeMillis()
-        )
+        viewModelScope.launch {
+            try {
+                val locationData = mapOf(
+                    "id" to userId,
+                    "address" to uiState.address,
+                    "latitude" to uiState.centerLocation.latitude,
+                    "longitude" to uiState.centerLocation.longitude,
+                    "last_updated" to System.currentTimeMillis()
+                )
 
-        database.child("users").child(userId).child("selectedLocation").setValue(locationData)
-            .addOnSuccessListener {
+                withContext(Dispatchers.IO) {
+                    // Update user's location in the 'users' table or a dedicated 'locations' table
+                    postgrest["users"].update({
+                        set("address", uiState.address)
+                        set("latitude", uiState.centerLocation.latitude)
+                        set("longitude", uiState.centerLocation.longitude)
+                    }) {
+                        filter { eq("id", userId) }
+                    }
+                }
                 onSuccess()
+            } catch (e: Exception) {
+                // Log error
             }
-            .addOnFailureListener {
-                // Log error or handle failure
-            }
+        }
     }
 }

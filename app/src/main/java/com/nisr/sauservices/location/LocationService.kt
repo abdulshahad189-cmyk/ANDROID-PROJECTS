@@ -8,17 +8,22 @@ import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ServerValue
 import com.nisr.sauservices.R
+import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private val database = FirebaseDatabase.getInstance("https://sau-services-default-rtdb.asia-southeast1.firebasedatabase.app/").reference
-    private val auth = FirebaseAuth.getInstance()
+    private val auth = SupabaseClient.client.auth
+    private val postgrest = SupabaseClient.client.postgrest
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -30,7 +35,7 @@ class LocationService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
-                    updateLocationToFirebase(location)
+                    updateLocationToSupabase(location)
                 }
             }
         }
@@ -56,33 +61,35 @@ class LocationService : Service() {
         }
     }
 
-    private fun updateLocationToFirebase(location: Location) {
-        val userId = auth.currentUser?.uid ?: return
+    private fun updateLocationToSupabase(location: Location) {
+        val userId = auth.currentUserOrNull()?.id ?: return
         
-        val locationData = mapOf(
-            "lat" to location.latitude,
-            "lng" to location.longitude,
-            "timestamp" to ServerValue.TIMESTAMP
-        )
+        serviceScope.launch {
+            try {
+                // Update global delivery partner location
+                postgrest["delivery_locations"].upsert(
+                    mapOf(
+                        "user_id" to userId,
+                        "latitude" to location.latitude,
+                        "longitude" to location.longitude,
+                        "updated_at" to System.currentTimeMillis()
+                    )
+                )
 
-        // Update global delivery boy location
-        database.child("deliveryLocations").child(userId).setValue(locationData)
-        
-        // Update location for all orders assigned to this delivery boy
-        database.child("orders").orderByChild("assignedDeliveryBoy").equalTo(userId)
-            .get().addOnSuccessListener { snapshot ->
-                val updates = mutableMapOf<String, Any>()
-                snapshot.children.forEach { orderSnapshot ->
-                    val orderId = orderSnapshot.key
-                    val currentStatus = orderSnapshot.child("orderStatus").getValue(String::class.java)
-                    if (orderId != null && currentStatus != "delivered") {
-                        updates["orders/$orderId/liveLocation"] = locationData
+                // Update orders assigned to this delivery partner
+                postgrest["orders"].update({
+                    set("delivery_boy_lat", location.latitude)
+                    set("delivery_boy_lng", location.longitude)
+                }) {
+                    filter {
+                        eq("delivery_partner_id", userId)
+                        neq("status", "delivered")
                     }
                 }
-                if (updates.isNotEmpty()) {
-                    database.updateChildren(updates)
-                }
+            } catch (e: Exception) {
+                // Handle error
             }
+        }
     }
 
     private fun createNotificationChannel() {

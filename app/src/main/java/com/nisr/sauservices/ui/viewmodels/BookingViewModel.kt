@@ -3,13 +3,13 @@ package com.nisr.sauservices.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.BookingModel
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class BookingViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
 
     private val _bookingStatus = MutableStateFlow<Result<String>?>(null)
     val bookingStatus = _bookingStatus.asStateFlow()

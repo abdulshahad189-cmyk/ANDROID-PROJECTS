@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.data.model.BookingModel
-import com.nisr.sauservices.data.model.FirebaseUser
+import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.ui.viewmodels.AdminViewModel
 
@@ -112,7 +112,7 @@ fun AdminDashboardScreen(
 }
 
 @Composable
-fun UserManagementList(users: List<FirebaseUser>, onDelete: (String) -> Unit) {
+fun UserManagementList(users: List<User>, onDelete: (String) -> Unit) {
     if (users.isEmpty()) {
         EmptyState("No users registered yet")
     } else {
@@ -133,17 +133,17 @@ fun UserManagementList(users: List<FirebaseUser>, onDelete: (String) -> Unit) {
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(user.displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(user.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Badge(containerColor = AdminPrimary.copy(alpha = 0.1f), contentColor = AdminPrimary) {
                                     Text(user.role.uppercase(), fontSize = 10.sp, modifier = Modifier.padding(horizontal = 4.dp))
                                 }
                                 Spacer(Modifier.width(8.dp))
-                                Text(user.displayPhone, fontSize = 12.sp, color = Color.Gray)
+                                Text(user.phone, fontSize = 12.sp, color = Color.Gray)
                             }
-                            Text(user.displayEmail, fontSize = 12.sp, color = Color.Gray)
+                            Text(user.email, fontSize = 12.sp, color = Color.Gray)
                         }
-                        IconButton(onClick = { onDelete(user.userId) }) {
+                        IconButton(onClick = { onDelete(user.id) }) {
                             Icon(Icons.Rounded.DeleteOutline, null, tint = ErrorRed)
                         }
                     }
@@ -173,8 +173,8 @@ fun AdminOrderList(
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
-                                Text("Order ID: ${order.orderId.takeLast(6).uppercase()}", fontWeight = FontWeight.Bold)
-                                Text(order.serviceName.ifEmpty { "Product Order" }, fontSize = 13.sp, color = Color.Gray)
+                                Text("Order ID: ${order.id.takeLast(6).uppercase()}", fontWeight = FontWeight.Bold)
+                                Text("Product Order", fontSize = 13.sp, color = Color.Gray)
                             }
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(Icons.Rounded.MoreVert, null)
@@ -182,16 +182,16 @@ fun AdminOrderList(
                             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                                 DropdownMenuItem(
                                     text = { Text("Mark Delivered") },
-                                    onClick = { onUpdateStatus(order.orderId, "delivered"); showMenu = false }
+                                    onClick = { onUpdateStatus(order.id, "delivered"); showMenu = false }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("Mark Cancelled") },
-                                    onClick = { onUpdateStatus(order.orderId, "cancelled"); showMenu = false }
+                                    onClick = { onUpdateStatus(order.id, "cancelled"); showMenu = false }
                                 )
                                 HorizontalDivider()
                                 DropdownMenuItem(
                                     text = { Text("Delete Order", color = Color.Red) },
-                                    onClick = { onDelete(order.orderId); showMenu = false }
+                                    onClick = { onDelete(order.id); showMenu = false }
                                 )
                             }
                         }
@@ -200,16 +200,16 @@ fun AdminOrderList(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Payment, null, size = 16.dp, tint = Color.Gray)
                             Spacer(Modifier.width(4.dp))
-                            Text("Total: ₹${order.totalPrice}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text("Total: ₹${order.total_amount}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.width(12.dp))
-                            StatusChip(order.displayStatus)
+                            StatusChip(order.status)
                         }
                         
                         Spacer(Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Top) {
                             Icon(Icons.Rounded.LocationOn, null, size = 16.dp, tint = Color.Gray)
                             Spacer(Modifier.width(4.dp))
-                            Text(order.displayAddress, fontSize = 12.sp, color = Color.Gray, maxLines = 2)
+                            Text(order.address, fontSize = 12.sp, color = Color.Gray, maxLines = 2)
                         }
 
                         if (order.items.isNotEmpty()) {
@@ -243,8 +243,8 @@ fun AdminBookingList(
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
-                                Text(booking.displayService, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("Customer: ${booking.customerId.takeLast(6).uppercase()}", fontSize = 12.sp, color = Color.Gray)
+                                Text(booking.service_name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Customer: ${booking.user_id.takeLast(6).uppercase()}", fontSize = 12.sp, color = Color.Gray)
                             }
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(Icons.Rounded.MoreVert, null)
@@ -252,16 +252,16 @@ fun AdminBookingList(
                             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                                 DropdownMenuItem(
                                     text = { Text("Complete Booking") },
-                                    onClick = { onUpdateStatus(booking.bookingId, "completed"); showMenu = false }
+                                    onClick = { onUpdateStatus(booking.id, "completed"); showMenu = false }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("Cancel Booking") },
-                                    onClick = { onUpdateStatus(booking.bookingId, "cancelled"); showMenu = false }
+                                    onClick = { onUpdateStatus(booking.id, "cancelled"); showMenu = false }
                                 )
                                 HorizontalDivider()
                                 DropdownMenuItem(
                                     text = { Text("Delete Booking", color = Color.Red) },
-                                    onClick = { onDelete(booking.bookingId); showMenu = false }
+                                    onClick = { onDelete(booking.id); showMenu = false }
                                 )
                             }
                         }
@@ -270,7 +270,7 @@ fun AdminBookingList(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Schedule, null, size = 16.dp, tint = AdminPrimary)
                             Spacer(Modifier.width(4.dp))
-                            Text("${booking.displayDate} • ${booking.displayTime}", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text("${booking.scheduled_date} • ${booking.scheduled_time}", fontSize = 13.sp, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.width(12.dp))
                             StatusChip(booking.status)
                         }
@@ -279,7 +279,7 @@ fun AdminBookingList(
                         Row(verticalAlignment = Alignment.Top) {
                             Icon(Icons.Rounded.Home, null, size = 16.dp, tint = Color.Gray)
                             Spacer(Modifier.width(4.dp))
-                            Text(booking.displayAddress, fontSize = 12.sp, color = Color.Gray)
+                            Text(booking.address, fontSize = 12.sp, color = Color.Gray)
                         }
                     }
                 }
@@ -289,14 +289,14 @@ fun AdminBookingList(
 }
 
 @Composable
-fun AdminAnalyticsScreen(users: List<FirebaseUser>, orders: List<OrderModel>, bookings: List<BookingModel>) {
+fun AdminAnalyticsScreen(users: List<User>, orders: List<OrderModel>, bookings: List<BookingModel>) {
     Column(Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
         Text("System Dashboard", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.Black)
         Spacer(Modifier.height(20.dp))
         
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             AnalyticsCard("Total Users", users.size.toString(), Icons.Rounded.Group, Modifier.weight(1f))
-            AnalyticsCard("Revenue", "₹${orders.filter { it.displayStatus == "delivered" || it.displayStatus == "completed" }.sumOf { it.totalPrice }.toInt()}", Icons.Rounded.Payments, Modifier.weight(1f))
+            AnalyticsCard("Revenue", "₹${orders.filter { it.status == "delivered" || it.status == "completed" }.sumOf { it.total_amount }.toInt()}", Icons.Rounded.Payments, Modifier.weight(1f))
         }
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -324,8 +324,8 @@ fun AdminAnalyticsScreen(users: List<FirebaseUser>, orders: List<OrderModel>, bo
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text(booking.displayService, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                Text(booking.displayDate, fontSize = 11.sp, color = Color.Gray)
+                                Text(booking.service_name, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text(booking.scheduled_date, fontSize = 11.sp, color = Color.Gray)
                             }
                             StatusChip(booking.status)
                         }
@@ -396,5 +396,5 @@ fun EmptyState(msg: String) {
 
 @Composable
 fun Icon(imageVector: androidx.compose.ui.graphics.vector.ImageVector, contentDescription: String?, size: androidx.compose.ui.unit.Dp, tint: Color) {
-    Icon(imageVector, contentDescription, modifier = Modifier.size(size), tint = tint)
+    androidx.compose.material3.Icon(imageVector, contentDescription, modifier = Modifier.size(size), tint = tint)
 }

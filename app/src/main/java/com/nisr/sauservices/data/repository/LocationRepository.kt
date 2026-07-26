@@ -1,71 +1,84 @@
 package com.nisr.sauservices.data.repository
 
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.database.*
-import kotlinx.coroutines.channels.awaitClose
+import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.realtime.selectAsFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 
 class LocationRepository {
-    private val database = FirebaseDatabase.getInstance().reference
+    private val postgrest = SupabaseClient.client.postgrest
 
-    fun updateUserLocation(userId: String, latLng: LatLng, role: String) {
-        val updates = mapOf(
-            "latitude" to latLng.latitude,
-            "longitude" to latLng.longitude,
-            "role" to role,
-            "lastUpdated" to System.currentTimeMillis()
-        )
-        database.child("locations").child(userId).updateChildren(updates)
+    suspend fun updateUserLocation(userId: String, latLng: LatLng, role: String) {
+        withContext(Dispatchers.IO) {
+            postgrest["locations"].upsert(
+                mapOf(
+                    "id" to userId,
+                    "latitude" to latLng.latitude,
+                    "longitude" to latLng.longitude,
+                    "role" to role,
+                    "last_updated" to System.currentTimeMillis()
+                )
+            )
+        }
     }
 
-    fun observeUserLocation(userId: String): Flow<LatLng?> = callbackFlow {
-        val ref = database.child("locations").child(userId)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val lat = snapshot.child("latitude").getValue(Double::class.java)
-                val lng = snapshot.child("longitude").getValue(Double::class.java)
-                if (lat != null && lng != null) {
-                    trySend(LatLng(lat, lng))
-                }
+    fun observeUserLocation(userId: String): Flow<LatLng?> {
+        return postgrest["locations"]
+            .selectAsFlow(LocationData::id) {
+                filter { eq("id", userId) }
             }
-            override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+            .map { list ->
+                list.firstOrNull()?.let { LatLng(it.latitude, it.longitude) }
             }
-        }
-        ref.addValueEventListener(listener)
-        awaitClose { ref.removeEventListener(listener) }
+            .flowOn(Dispatchers.IO)
     }
 
-    fun observeOrderTracking(orderId: String): Flow<TrackingData> = callbackFlow {
-        val ref = database.child("orders").child(orderId)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val deliveryBoy = snapshot.child("deliveryBoyLocation").let {
-                    val lat = it.child("latitude").getValue(Double::class.java)
-                    val lng = it.child("longitude").getValue(Double::class.java)
-                    if (lat != null && lng != null) LatLng(lat, lng) else null
-                }
-                val customer = snapshot.child("customerLocation").let {
-                    val lat = it.child("latitude").getValue(Double::class.java)
-                    val lng = it.child("longitude").getValue(Double::class.java)
-                    if (lat != null && lng != null) LatLng(lat, lng) else null
-                }
-                val shop = snapshot.child("shopLocation").let {
-                    val lat = it.child("latitude").getValue(Double::class.java)
-                    val lng = it.child("longitude").getValue(Double::class.java)
-                    if (lat != null && lng != null) LatLng(lat, lng) else null
-                }
-                trySend(TrackingData(deliveryBoy, customer, shop))
+    fun observeOrderTracking(orderId: String): Flow<TrackingData> {
+        return postgrest["orders"]
+            .selectAsFlow(OrderTrackingData::id) {
+                filter { eq("id", orderId) }
             }
-            override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+            .map { list ->
+                val data = list.firstOrNull()
+                TrackingData(
+                    deliveryBoy = data?.delivery_boy_lat?.let { lat -> 
+                        data.delivery_boy_lng?.let { lng -> LatLng(lat, lng) } 
+                    },
+                    customer = data?.customer_lat?.let { lat -> 
+                        data.customer_lng?.let { lng -> LatLng(lat, lng) } 
+                    },
+                    shop = data?.shop_lat?.let { lat -> 
+                        data.shop_lng?.let { lng -> LatLng(lat, lng) } 
+                    }
+                )
             }
-        }
-        ref.addValueEventListener(listener)
-        awaitClose { ref.removeEventListener(listener) }
+            .flowOn(Dispatchers.IO)
     }
 }
+
+@Serializable
+private data class LocationData(
+    val id: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
+@Serializable
+private data class OrderTrackingData(
+    val id: String,
+    val delivery_boy_lat: Double? = null,
+    val delivery_boy_lng: Double? = null,
+    val customer_lat: Double? = null,
+    val customer_lng: Double? = null,
+    val shop_lat: Double? = null,
+    val shop_lng: Double? = null
+)
 
 data class TrackingData(
     val deliveryBoy: LatLng? = null,

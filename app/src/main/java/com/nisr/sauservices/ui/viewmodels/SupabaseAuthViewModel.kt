@@ -11,11 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * Legacy ViewModel kept for backward compatibility during migration.
- * All logic now uses Supabase.
- */
-class FirebaseAuthViewModel : ViewModel() {
+class SupabaseAuthViewModel : ViewModel() {
     private val repository = SupabaseRepository()
     private val auth = SupabaseClient.client.auth
 
@@ -38,9 +34,22 @@ class FirebaseAuthViewModel : ViewModel() {
                     this.password = pass
                 }
                 val uid = auth.currentUserOrNull()?.id ?: throw Exception("Signup failed")
-                val newUser = User(id = uid, name = name, email = email, phone = phone, role = role)
-                repository.registerUser(newUser).onSuccess { _userState.value = newUser }
-                    .onFailure { _errorMessage.value = it.message }
+                val newUser = User(
+                    id = uid,
+                    name = name,
+                    email = email,
+                    phone = phone,
+                    role = role
+                )
+                
+                repository.registerUser(newUser).fold(
+                    onSuccess = {
+                        _userState.value = newUser
+                    },
+                    onFailure = { throwable ->
+                        _errorMessage.value = throwable.message
+                    }
+                )
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {
@@ -54,10 +63,20 @@ class FirebaseAuthViewModel : ViewModel() {
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                auth.signInWith(Email) { this.email = email; this.password = pass }
+                auth.signInWith(Email) {
+                    this.email = email
+                    this.password = pass
+                }
                 val uid = auth.currentUserOrNull()?.id ?: throw Exception("Login failed")
-                repository.getUserProfile(uid).onSuccess { _userState.value = it }
-                    .onFailure { _errorMessage.value = it.message }
+                
+                repository.getUserProfile(uid).fold(
+                    onSuccess = { user ->
+                        _userState.value = user
+                    },
+                    onFailure = { throwable ->
+                        _errorMessage.value = throwable.message
+                    }
+                )
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {

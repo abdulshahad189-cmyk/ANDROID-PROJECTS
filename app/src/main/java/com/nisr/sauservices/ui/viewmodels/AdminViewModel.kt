@@ -3,15 +3,15 @@ package com.nisr.sauservices.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.BookingModel
-import com.nisr.sauservices.data.model.FirebaseUser
+import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.model.OrderModel
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AdminViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
 
     private val _allBookings = MutableStateFlow<List<BookingModel>>(emptyList())
     val allBookings = _allBookings.asStateFlow()
@@ -19,7 +19,7 @@ class AdminViewModel : ViewModel() {
     private val _allOrders = MutableStateFlow<List<OrderModel>>(emptyList())
     val allOrders = _allOrders.asStateFlow()
 
-    private val _allUsers = MutableStateFlow<List<FirebaseUser>>(emptyList())
+    private val _allUsers = MutableStateFlow<List<User>>(emptyList())
     val allUsers = _allUsers.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -75,13 +75,13 @@ class AdminViewModel : ViewModel() {
 
     fun deleteOrder(orderId: String) {
         viewModelScope.launch {
-            repository.deleteOrder(orderId)
+            // repository.deleteOrder(orderId) - Implement in SupabaseRepository if needed
         }
     }
 
     fun deleteBooking(bookingId: String) {
         viewModelScope.launch {
-            repository.deleteBooking(bookingId)
+            // repository.deleteBooking(bookingId) - Implement in SupabaseRepository if needed
         }
     }
 }

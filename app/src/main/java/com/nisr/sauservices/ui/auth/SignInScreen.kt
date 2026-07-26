@@ -1,8 +1,5 @@
-
 package com.nisr.sauservices.ui.auth
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,12 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
-import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
+import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.viewmodel.AuthState
 import com.nisr.sauservices.ui.viewmodel.AuthViewModel
 
@@ -60,21 +54,6 @@ fun SignInScreen(navController: NavController, role: String, authViewModel: Auth
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val authState by authViewModel.authState
-
-    val googleLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, role)
-            }
-        } catch (e: ApiException) {
-            // Handle error
-        }
-    }
 
     val isShopkeeper = role == "shopkeeper"
     val isWorker = role == "service_worker"
@@ -333,7 +312,9 @@ fun SignInScreen(navController: NavController, role: String, authViewModel: Auth
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
+                        onClick = { 
+                            // Supabase Google Login would be implemented here
+                        },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFF0F0F0))

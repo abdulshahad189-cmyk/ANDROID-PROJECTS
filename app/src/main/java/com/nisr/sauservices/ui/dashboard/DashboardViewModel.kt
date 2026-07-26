@@ -2,18 +2,19 @@ package com.nisr.sauservices.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.repository.CartRepository
-import com.google.firebase.auth.FirebaseAuth
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class DashboardViewModel : ViewModel() {
     private val repository = CartRepository()
-    private val auth = FirebaseAuth.getInstance()
-    private val currentUserId: String get() = auth.currentUser?.uid ?: ""
+    private val auth = SupabaseClient.client.auth
+    private val currentUserId: String get() = auth.currentUserOrNull()?.id ?: ""
 
     private val _globalOrders = MutableStateFlow<List<OrderModel>>(emptyList())
     val globalOrders: StateFlow<List<OrderModel>> = _globalOrders
@@ -41,14 +42,14 @@ class DashboardViewModel : ViewModel() {
     // --- SERVICE WORKER ACTIONS ---
     fun updateBookingStatus(booking: BookingModel, newStatus: String) {
         viewModelScope.launch {
-            repository.updateBookingStatus(booking.bookingId, newStatus, currentUserId)
+            repository.updateBookingStatus(booking.id, newStatus, currentUserId)
         }
     }
 
     // --- SHOPKEEPER ACTIONS ---
     fun updateOrderStatus(order: OrderModel, newStatus: String) {
         viewModelScope.launch {
-            repository.updateOrderStatus(order.orderId, newStatus, currentUserId)
+            repository.updateOrderStatus(order.id, newStatus, currentUserId)
         }
     }
 }

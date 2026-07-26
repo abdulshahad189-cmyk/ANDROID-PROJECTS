@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.CartModel
 import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.data.model.HomeProduct
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import com.nisr.sauservices.data.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class CartViewModel : ViewModel() {
     private val cartRepository = CartRepository()
-    private val firebaseRepository = FirebaseRepository()
+    private val repository = SupabaseRepository()
 
     private val _dbCartItems = MutableStateFlow<List<CartModel>>(emptyList())
     val dbCartItems = _dbCartItems.asStateFlow()
@@ -113,15 +113,14 @@ class CartViewModel : ViewModel() {
 
             val total = items.sumOf { it.totalPrice }
             val order = OrderModel(
-                customerId = firebaseRepository.getCurrentUserId() ?: "",
+                user_id = repository.getCurrentUserId() ?: "",
                 items = items,
-                totalPrice = total,
+                total_amount = total,
                 address = address,
-                orderStatus = "pending",
-                paymentMethod = paymentMethod
+                status = "placed"
             )
 
-            firebaseRepository.placeOrder(order).onSuccess { orderId ->
+            repository.placeOrder(order).onSuccess { orderId ->
                 cartRepository.clearCart()
                 _orderStatus.value = Result.success(orderId)
             }.onFailure {

@@ -6,13 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.Booking
 import com.nisr.sauservices.data.model.BookingModel
-import com.nisr.sauservices.data.repository.FirebaseRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ServiceWorkerViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+    private val repository = SupabaseRepository()
     private val workerId = repository.getCurrentUserId() ?: ""
 
     private val _pendingBookings = MutableStateFlow<List<BookingModel>>(emptyList())
@@ -24,7 +24,6 @@ class ServiceWorkerViewModel : ViewModel() {
     private val _completedBookings = MutableStateFlow<List<BookingModel>>(emptyList())
     val completedBookings = _completedBookings.asStateFlow()
 
-    // LiveData for compatibility with Activity and existing Compose Screens
     private val _bookings = MutableLiveData<List<Booking>>(emptyList())
     val bookings: LiveData<List<Booking>> = _bookings
 
@@ -41,12 +40,11 @@ class ServiceWorkerViewModel : ViewModel() {
         viewModelScope.launch {
             repository.listenToWorkerBookings(workerId).collect { allBookings ->
                 _pendingBookings.value = allBookings.filter { it.status == "pending" }
-                val accepted = allBookings.filter { it.status == "accepted" && it.workerId == workerId }
+                val accepted = allBookings.filter { it.status == "accepted" && it.provider_id == workerId }
                 _acceptedBookings.value = accepted
-                _completedBookings.value = allBookings.filter { it.status == "completed" && it.workerId == workerId }
+                _completedBookings.value = allBookings.filter { it.status == "completed" && it.provider_id == workerId }
                 
-                // Update legacy LiveData
-                _bookings.value = allBookings.filter { it.workerId == workerId || it.status == "pending" }.map { it.toLegacyBooking() }
+                _bookings.value = allBookings.filter { it.provider_id == workerId || it.status == "pending" }.map { it.toLegacyBooking() }
             }
         }
     }
@@ -77,11 +75,11 @@ class ServiceWorkerViewModel : ViewModel() {
     }
 
     private fun BookingModel.toLegacyBooking() = Booking(
-        bookingId = bookingId,
+        bookingId = id,
         customerName = "Customer",
-        serviceType = serviceName,
+        serviceType = service_name,
         address = address,
-        timeSlot = scheduledTime,
+        timeSlot = scheduled_time,
         status = status
     )
 }
