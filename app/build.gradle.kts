@@ -32,8 +32,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
@@ -73,7 +75,7 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.content-negotiation)
+    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
     // Kotlinx Serialization

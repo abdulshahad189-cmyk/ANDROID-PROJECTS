@@ -9,9 +9,8 @@ import io.github.jan.supabase.storage.Storage
 
 object SupabaseClient {
     // Replace these with your actual Supabase URL and Anon Key
-    private const val SUPABASE_URL = "https://your-project-id.supabase.co"
-    private const val SUPABASE_ANON_KEY = "your-anon-key"
-
+    private const val SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co"
+    private const val SUPABASE_ANON_KEY = "YOUR_PUBLISHABLE_KEY"
     val client: SupabaseClient = createSupabaseClient(
         supabaseUrl = SUPABASE_URL,
         supabaseKey = SUPABASE_ANON_KEY
