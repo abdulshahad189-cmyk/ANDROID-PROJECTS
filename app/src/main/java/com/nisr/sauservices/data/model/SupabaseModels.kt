@@ -1,6 +1,7 @@
 package com.nisr.sauservices.data.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class OperationResult(
@@ -10,41 +11,65 @@ data class OperationResult(
 
 @Serializable
 data class LiveLocation(
-    val lat: Double = 0.0,
-    val lng: Double = 0.0,
+    @SerialName("lat") val latitude: Double = 0.0,
+    @SerialName("lng") val longitude: Double = 0.0,
     val timestamp: Long = System.currentTimeMillis()
 )
 
 @Serializable
 data class BookingModel(
-    val id: String = "",
-    val user_id: String = "",
-    val service_id: String = "",
-    val service_name: String = "",
-    val scheduled_date: String = "",
-    val scheduled_time: String = "",
+    @SerialName("id") val bookingId: String = "",
+    @SerialName("user_id") val userId: String = "",
+    @SerialName("service_id") val serviceId: String = "",
+    @SerialName("service_name") val serviceName: String = "",
+    @SerialName("category") val category: String = "",
+    @SerialName("subcategory") val subcategory: String = "",
+    @SerialName("scheduled_date") val scheduleDate: String = "",
+    @SerialName("scheduled_time") val scheduleTime: String = "",
     val status: String = "pending",
-    val provider_id: String = "",
-    val created_at: String? = null,
-    val address: String = ""
+    @SerialName("provider_id") val providerId: String = "",
+    @SerialName("created_at") val timestamp: String? = null,
+    val address: String = "",
+    val amount: Double = 0.0,
+    val paymentMethod: String = "Cash"
 ) {
+    // Aliases for compatibility with repository logic using snake_case
+    val id: String get() = bookingId
+    val user_id: String get() = userId
+    val service_id: String get() = serviceId
+    val service_name: String get() = serviceName
+    val scheduled_date: String get() = scheduleDate
+    val scheduled_time: String get() = scheduleTime
+    val provider_id: String get() = providerId
+    val created_at: String? get() = timestamp
+
     val displayAddress: String get() = address.ifEmpty { "No address provided" }
-    val displayDate: String get() = scheduled_date.ifEmpty { "TBD" }
-    val displayTime: String get() = scheduled_time.ifEmpty { "" }
-    val displayService: String get() = service_name.ifEmpty { "Service Request" }
+    val displayDate: String get() = scheduleDate.ifEmpty { "TBD" }
+    val displayTime: String get() = scheduleTime.ifEmpty { "" }
+    val displayService: String get() = serviceName.ifEmpty { "Service Request" }
 }
 
 @Serializable
 data class OrderModel(
-    val id: String = "",
-    val user_id: String = "",
+    @SerialName("id") val orderId: String = "",
+    @SerialName("user_id") val userId: String = "",
+    @SerialName("shop_id") val shopId: String? = null,
     val items: List<CartModel> = emptyList(),
-    val total_amount: Double = 0.0,
+    @SerialName("total_amount") val totalPrice: Double = 0.0,
     val address: String = "",
-    val status: String = "placed",
-    val delivery_partner_id: String? = null,
-    val created_at: String? = null
-)
+    @SerialName("status") val orderStatus: String = "placed",
+    @SerialName("delivery_partner_id") val deliveryPartnerId: String? = null,
+    @SerialName("created_at") val timestamp: String? = null
+) {
+    // Aliases for compatibility
+    val id: String get() = orderId
+    val user_id: String get() = userId
+    val shop_id: String? get() = shopId
+    val status: String get() = orderStatus
+    val total_amount: Double get() = totalPrice
+    val delivery_partner_id: String? get() = deliveryPartnerId
+    val assignedDeliveryBoy: String? get() = deliveryPartnerId
+}
 
 @Serializable
 data class SupabaseUser(
@@ -81,4 +106,18 @@ data class ProductModel(
     val price: Double = 0.0,
     val stock_quantity: Int = 0,
     val image_url: String? = null
+)
+
+@Serializable
+data class Address(
+    val id: String = "",
+    @SerialName("user_id") val userId: String = "",
+    val fullName: String = "",
+    val phone: String = "",
+    val houseNo: String = "",
+    val street: String = "",
+    val city: String = "",
+    val state: String = "",
+    val pincode: String = "",
+    val isDefault: Boolean = false
 )
