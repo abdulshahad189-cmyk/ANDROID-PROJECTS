@@ -6,7 +6,7 @@ import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.repository.CartRepository
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

@@ -32,11 +32,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
     }
+
     buildFeatures {
         compose = true
     }
@@ -65,7 +67,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // Supabase
-    implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
     implementation(libs.supabase.storage)
@@ -78,8 +79,10 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    // Kotlinx Serialization
+    // Kotlinx
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.play.services.auth)
 
@@ -90,6 +93,9 @@ dependencies {
     implementation(libs.androidx.credentials.core)
     implementation(libs.androidx.credentials.play)
     implementation(libs.google.identity.id)
+
+    // Browser dependency
+    implementation(libs.androidx.browser)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

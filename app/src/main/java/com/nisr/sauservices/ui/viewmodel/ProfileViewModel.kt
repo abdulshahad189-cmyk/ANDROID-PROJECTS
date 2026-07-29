@@ -6,7 +6,7 @@ import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.Address
 import com.nisr.sauservices.data.model.NotificationPreferences
 import com.nisr.sauservices.data.model.UserProfile
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -96,7 +96,7 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    postgrest["addresses"].insert(address.copy(id = "")) // user_id should be in model or handled by policy
+                    postgrest["addresses"].insert(address.copy(id = ""))
                 }
                 fetchAddresses()
             } catch (e: Exception) { }

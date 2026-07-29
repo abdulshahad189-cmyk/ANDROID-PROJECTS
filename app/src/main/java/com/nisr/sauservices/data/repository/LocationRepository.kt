@@ -2,7 +2,9 @@ package com.nisr.sauservices.data.repository
 
 import com.google.android.gms.maps.model.LatLng
 import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,22 +30,20 @@ class LocationRepository {
         }
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun observeUserLocation(userId: String): Flow<LatLng?> {
         return postgrest["locations"]
-            .selectAsFlow(LocationData::id) {
-                filter { eq("id", userId) }
-            }
+            .selectAsFlow(LocationData::id, filter = FilterOperation { eq("id", userId) })
             .map { list ->
                 list.firstOrNull()?.let { LatLng(it.latitude, it.longitude) }
             }
             .flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun observeOrderTracking(orderId: String): Flow<TrackingData> {
         return postgrest["orders"]
-            .selectAsFlow(OrderTrackingData::id) {
-                filter { eq("id", orderId) }
-            }
+            .selectAsFlow(OrderTrackingData::id, filter = FilterOperation { eq("id", orderId) })
             .map { list ->
                 val data = list.firstOrNull()
                 TrackingData(

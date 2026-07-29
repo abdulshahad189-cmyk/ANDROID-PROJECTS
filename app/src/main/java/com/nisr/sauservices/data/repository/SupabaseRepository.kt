@@ -2,96 +2,105 @@ package com.nisr.sauservices.data.repository
 
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.*
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.eq
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-class SupabaseRepository {
+open class SupabaseRepository {
     private val auth = SupabaseClient.client.auth
-    private val postgrest = SupabaseClient.client.postgrest
+    protected val postgrest = SupabaseClient.client.postgrest
 
     fun getCurrentUserId(): String? = auth.currentUserOrNull()?.id
 
     // --- GENERIC LISTENERS ---
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToOrders(): Flow<List<OrderModel>> {
         return postgrest["orders"].selectAsFlow(OrderModel::id).flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToBookings(): Flow<List<BookingModel>> {
         return postgrest["bookings"].selectAsFlow(BookingModel::id).flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToUsers(): Flow<List<User>> {
         return postgrest["users"].selectAsFlow(User::id).flowOn(Dispatchers.IO)
     }
 
     // --- SPECIFIC LISTENERS ---
 
+    @OptIn(SupabaseExperimental::class)
     fun observeMyBookings(role: String, userId: String): Flow<List<BookingModel>> {
-        return postgrest["bookings"].selectAsFlow(BookingModel::id) {
-            filter {
-                if (role == "customer") eq("user_id", userId) else eq("provider_id", userId)
-            }
+        return postgrest["bookings"].selectAsFlow(BookingModel::id).map { list ->
+            if (role == "customer") list.filter { it.user_id == userId } 
+            else list.filter { it.provider_id == userId }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToCustomerOrders(customerId: String): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("user_id", customerId) }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.user_id == customerId }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToDeliveryBoyOrders(deliveryBoyId: String): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("delivery_partner_id", deliveryBoyId) }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.delivery_partner_id == deliveryBoyId }
         }.flowOn(Dispatchers.IO)
     }
     
     fun observeAssignedOrders(deliveryBoyId: String): Flow<List<OrderModel>> = listenToDeliveryBoyOrders(deliveryBoyId)
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToAvailableOrders(): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("status", "accepted") }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.status == "accepted" }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun observeAvailableBookings(type: String): Flow<List<BookingModel>> {
-        return postgrest["bookings"].selectAsFlow(BookingModel::id) {
-            filter { eq("status", "pending") }
+        return postgrest["bookings"].selectAsFlow(BookingModel::id).map { list ->
+            list.filter { it.status == "pending" }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToWorkerBookings(workerId: String): Flow<List<BookingModel>> {
-        return postgrest["bookings"].selectAsFlow(BookingModel::id) {
-            filter { eq("provider_id", workerId) }
+        return postgrest["bookings"].selectAsFlow(BookingModel::id).map { list ->
+            list.filter { it.provider_id == workerId }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getPendingOrders(): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("status", "placed") }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.status == "placed" }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getAcceptedOrders(): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("status", "accepted") }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.status == "accepted" }
         }.flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getAssignedOrdersForShop(shopId: String? = null): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { 
-                or {
-                    eq("status", "assigned")
-                    eq("status", "out_for_delivery")
-                }
-            }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.filter { it.status == "assigned" || it.status == "out_for_delivery" }
         }.flowOn(Dispatchers.IO)
     }
 
@@ -100,17 +109,15 @@ class SupabaseRepository {
     fun listenToAllUsers(): Flow<List<User>> = listenToUsers()
     fun listenToShopkeeperOrders(): Flow<List<OrderModel>> = listenToOrders()
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToDeliveryLocations(): Flow<List<LiveLocation>> {
         return postgrest["delivery_locations"].selectAsFlow(LiveLocation::timestamp).flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun listenToCustomerOrder(orderId: String): Flow<OrderModel?> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id) {
-            filter { eq("id", orderId) }
-        }.let { flow ->
-            kotlinx.coroutines.flow.flow {
-                flow.collect { emit(it.firstOrNull()) }
-            }
+        return postgrest["orders"].selectAsFlow(OrderModel::id).map { list ->
+            list.firstOrNull { it.id == orderId }
         }.flowOn(Dispatchers.IO)
     }
 
@@ -132,7 +139,9 @@ class SupabaseRepository {
 
     suspend fun updateOrderStatus(orderId: String, status: String): Result<Unit> = try {
         withContext(Dispatchers.IO) {
-            postgrest["orders"].update({ set("status", status) }) { filter { eq("id", orderId) } }
+            postgrest["orders"].update({ set("status", status) }) {
+                filter { eq("id", orderId) }
+            }
         }
         Result.success(Unit)
     } catch (e: Exception) { Result.failure(e) }
@@ -142,7 +151,9 @@ class SupabaseRepository {
             postgrest["bookings"].update({
                 set("status", status)
                 if (workerId != null) set("provider_id", workerId)
-            }) { filter { eq("id", bookingId) } }
+            }) {
+                filter { eq("id", bookingId) }
+            }
         }
         Result.success(Unit)
     } catch (e: Exception) { Result.failure(e) }
@@ -156,14 +167,18 @@ class SupabaseRepository {
 
     suspend fun getUserProfile(userId: String): Result<User> = try {
         val user = withContext(Dispatchers.IO) {
-            postgrest["users"].select { filter { eq("id", userId) } }.decodeSingle<User>()
+            postgrest["users"].select {
+                filter { eq("id", userId) }
+            }.decodeSingle<User>()
         }
         Result.success(user)
     } catch (e: Exception) { Result.failure(e) }
 
     suspend fun deleteUser(userId: String): Result<Unit> = try {
         withContext(Dispatchers.IO) {
-            postgrest["users"].delete { filter { eq("id", userId) } }
+            postgrest["users"].delete {
+                filter { eq("id", userId) }
+            }
         }
         Result.success(Unit)
     } catch (e: Exception) { Result.failure(e) }

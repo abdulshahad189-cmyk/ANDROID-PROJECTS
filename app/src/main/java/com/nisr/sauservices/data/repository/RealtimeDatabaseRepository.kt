@@ -2,7 +2,8 @@ package com.nisr.sauservices.data.repository
 
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.OrderModel
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
@@ -31,13 +32,12 @@ class RealtimeDatabaseRepository {
         Result.failure(e)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun observeUserActivity(): Flow<List<OrderModel>> {
         val userId = getCurrentUserId() ?: "anonymous"
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::id) {
-                filter {
-                    eq("user_id", userId)
-                }
-            }.flowOn(Dispatchers.IO)
+            .selectAsFlow(OrderModel::id, filter = {
+                eq("user_id", userId)
+            }).flowOn(Dispatchers.IO)
     }
 }

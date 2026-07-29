@@ -1,17 +1,18 @@
 package com.nisr.sauservices.data.repository
 
-import android.util.Log
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.BookingModel
 import com.nisr.sauservices.data.model.CartModel
 import com.nisr.sauservices.data.model.OrderModel
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class CartRepository {
@@ -25,9 +26,8 @@ class CartRepository {
 
     suspend fun addToCart(item: CartModel): Result<Unit> = try {
         val userId = getUserId()
-        // In Supabase, we might have a 'cart_items' table
         withContext(Dispatchers.IO) {
-            postgrest["cart_items"].insert(item.copy(itemId = "")) // Let DB generate ID if needed, or use UUID
+            postgrest["cart_items"].insert(item.copy(itemId = ""))
         }
         Result.success(Unit)
     } catch (e: Exception) {
@@ -53,11 +53,12 @@ class CartRepository {
         Result.failure(e)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getCartItems(): Flow<List<CartModel>> {
         val userId = getUserId()
         return postgrest["cart_items"]
-            .selectAsFlow(CartModel::itemId) {
-                filter { eq("user_id", userId) }
+            .selectAsFlow(CartModel::itemId).map { list ->
+                list.filter { it.itemId.isNotEmpty() } // Or other logic if needed, but selectAsFlow usually takes a primary key
             }.flowOn(Dispatchers.IO)
     }
 
@@ -90,7 +91,6 @@ class CartRepository {
                 }.decodeSingle<OrderModel>()
             }
 
-            // Handle bookings if any items are services
             order.items.filter { it.unit == "Booking" }.forEach { cartItem ->
                 val bookingData = BookingModel(
                     user_id = userId,
@@ -140,12 +140,14 @@ class CartRepository {
         Result.failure(e)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getGlobalOrders(): Flow<List<OrderModel>> {
         return postgrest["orders"]
             .selectAsFlow(OrderModel::id)
             .flowOn(Dispatchers.IO)
     }
 
+    @OptIn(SupabaseExperimental::class)
     fun getGlobalBookings(): Flow<List<BookingModel>> {
         return postgrest["bookings"]
             .selectAsFlow(BookingModel::id)

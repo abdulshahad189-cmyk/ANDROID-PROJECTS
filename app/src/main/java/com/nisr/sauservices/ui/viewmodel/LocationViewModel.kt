@@ -11,7 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.nisr.sauservices.data.api.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -111,14 +111,6 @@ class LocationViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val locationData = mapOf(
-                    "id" to userId,
-                    "address" to uiState.address,
-                    "latitude" to uiState.centerLocation.latitude,
-                    "longitude" to uiState.centerLocation.longitude,
-                    "last_updated" to System.currentTimeMillis()
-                )
-
                 withContext(Dispatchers.IO) {
                     // Update user's location in the 'users' table or a dedicated 'locations' table
                     postgrest["users"].update({

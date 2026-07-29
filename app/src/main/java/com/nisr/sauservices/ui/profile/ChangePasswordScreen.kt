@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.ui.theme.PinkPrimary
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +40,6 @@ fun ChangePasswordScreen(navController: NavController) {
     var newPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // In Supabase, we check identities for email
     val isEmailUser = user?.identities?.any { it.provider == "email" } ?: false
 
     Scaffold(
@@ -141,9 +140,6 @@ fun ChangePasswordScreen(navController: NavController) {
                     isLoading = true
                     scope.launch {
                         try {
-                            // Supabase doesn't require re-auth for updatePassword if session is valid,
-                            // but we can verify current password by signing in again if we really wanted to.
-                            // For simplicity, using updateUser.
                             auth.updateUser {
                                 password = newPassword
                             }

@@ -11,7 +11,9 @@ class StorageRepository {
     suspend fun uploadImage(bucketName: String, path: String, byteArray: ByteArray): Result<String> = try {
         withContext(Dispatchers.IO) {
             val bucket = storage.from(bucketName)
-            bucket.upload(path, byteArray, upsert = true)
+            bucket.upload(path, byteArray) {
+                upsert = true
+            }
             val url = bucket.publicUrl(path)
             Result.success(url)
         }

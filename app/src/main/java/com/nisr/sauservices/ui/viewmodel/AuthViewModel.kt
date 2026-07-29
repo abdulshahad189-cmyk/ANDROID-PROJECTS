@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
-import io.github.jan.supabase.gotrue.user.UserInfo
+import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.launch
 
 class AuthViewModel(private val userRepository: UserRepository = UserRepository()) : ViewModel() {
@@ -41,13 +41,9 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
         }
     }
 
-    // Google Sign-In with Supabase typically uses OAuth or native ID Token exchange
-    // For now, refactoring to keep the signature similar but using Supabase
     fun signInWithGoogle(idToken: String, role: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            // Supabase Auth ID Token exchange implementation would go here
-            // userRepository.signInWithIdToken(idToken) ...
             _authState.value = AuthState.Error("Google Sign-In needs Supabase OAuth configuration")
         }
     }

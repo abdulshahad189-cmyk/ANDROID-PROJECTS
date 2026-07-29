@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.ui.theme.PinkPrimary
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

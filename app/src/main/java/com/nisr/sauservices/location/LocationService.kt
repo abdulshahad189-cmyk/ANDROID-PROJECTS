@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.api.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

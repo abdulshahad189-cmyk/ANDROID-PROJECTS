@@ -25,14 +25,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.local.SessionManager
+import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.viewmodel.CartViewModel
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 
+@OptIn(SupabaseExperimental::class)
 @Composable
 fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -42,15 +47,13 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
     val cartItems by cartViewModel.dbCartItems.collectAsState()
     val cartCount = cartItems.sumOf { it.quantity }
 
-    // Real-time listener for address using Supabase Postgrest selectAsFlow or Realtime channel
     LaunchedEffect(user?.id) {
         user?.id?.let { uid ->
             SupabaseClient.client.postgrest["users"]
-                .selectAsFlow(String::class) {
-                    filter { eq("id", uid) }
-                    columns = io.github.jan.supabase.postgrest.query.Columns.list("address")
-                }.collectLatest { list ->
-                    userAddress = list.firstOrNull() ?: "Set Location"
+                .selectAsFlow(User::id, filter = FilterOperation { eq("id", uid) })
+                .map { it.firstOrNull()?.address ?: "Set Location" }
+                .collectLatest { address ->
+                    userAddress = address
                 }
         }
     }

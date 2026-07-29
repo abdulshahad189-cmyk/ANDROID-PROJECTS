@@ -28,7 +28,7 @@ import com.nisr.sauservices.data.model.PLSBooking
 import com.nisr.sauservices.data.model.PLSService
 import com.nisr.sauservices.navigation.Routes
 import com.nisr.sauservices.ui.viewmodels.PropertyLifestyleViewModel
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import java.util.*
 
 private val PrimaryBlue = Color(0xFF1E3A8A)
