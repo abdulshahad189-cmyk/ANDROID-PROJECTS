@@ -1,5 +1,7 @@
 package com.nisr.sauservices.ui.auth
 
+import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -53,6 +55,10 @@ private val TextDark = Color(0xFF1A1C1E)
 fun SignInScreen(navController: NavController, role: String = "customer", authViewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var otpCode by remember { mutableStateOf("") }
+    var isPhoneLogin by remember { mutableStateOf(false) }
+    
     var passwordVisible by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
     
@@ -68,21 +74,21 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
                 val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, "customer")
+                authViewModel.signInWithGoogle(credential, role)
             }
         } catch (e: ApiException) {
             // Handle error
         }
     }
 
-    val headerTitle = "Welcome Back"
-    val headerSubtitle = "Sign in to browse and order services"
-    val headerIcon = Icons.Rounded.Login
+    val headerTitle = if (isPhoneLogin) "Phone Login" else "Welcome Back"
+    val headerSubtitle = if (isPhoneLogin) "Sign in using your mobile number" else "Sign in to browse and order services"
+    val headerIcon = if (isPhoneLogin) Icons.Rounded.Smartphone else Icons.Rounded.Login
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             sessionManager.saveLoginState(true)
-            sessionManager.saveUserRole("customer")
+            sessionManager.saveUserRole(role)
             
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }
@@ -108,7 +114,15 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
         ) {
             Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                 IconButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = { 
+                        if (isPhoneLogin && authState !is AuthState.OtpSent) {
+                            isPhoneLogin = false
+                        } else if (authState is AuthState.OtpSent) {
+                            authViewModel.resetState()
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.size(20.dp))
@@ -170,81 +184,165 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                         )
                     }
 
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        placeholder = { Text("Email Address") },
-                        leadingIcon = { Icon(Icons.Rounded.AlternateEmail, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        enabled = authState !is AuthState.Loading,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ElegantTeal,
-                            unfocusedBorderColor = Color(0xFFF0F0F0),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                    if (!isPhoneLogin) {
+                        // Email Login UI
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            placeholder = { Text("Email Address") },
+                            leadingIcon = { Icon(Icons.Rounded.AlternateEmail, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            enabled = authState !is AuthState.Loading,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = ElegantTeal,
+                                unfocusedBorderColor = Color(0xFFF0F0F0),
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White
+                            )
                         )
-                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        placeholder = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                        trailingIcon = {
-                            val image = if (passwordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(image, "Toggle visibility", modifier = Modifier.size(20.dp))
-                            }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = authState !is AuthState.Loading,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ElegantTeal,
-                            unfocusedBorderColor = Color(0xFFF0F0F0),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            placeholder = { Text("Password") },
+                            leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                            trailingIcon = {
+                                val image = if (passwordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(image, "Toggle visibility", modifier = Modifier.size(20.dp))
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = authState !is AuthState.Loading,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = ElegantTeal,
+                                unfocusedBorderColor = Color(0xFFF0F0F0),
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White
+                            )
                         )
-                    )
+                    } else {
+                        // Phone Login UI
+                        if (authState is AuthState.OtpSent) {
+                            Text(
+                                text = "Enter the 6-digit code sent to $phoneNumber",
+                                fontSize = 14.sp,
+                                color = TextGrey,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            
+                            OutlinedTextField(
+                                value = otpCode,
+                                onValueChange = { if (it.length <= 6) otpCode = it },
+                                placeholder = { Text("Enter OTP") },
+                                leadingIcon = { Icon(Icons.Rounded.Pin, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                enabled = authState !is AuthState.Loading,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = ElegantTeal,
+                                    unfocusedBorderColor = Color(0xFFF0F0F0)
+                                )
+                            )
+                        } else {
+                            OutlinedTextField(
+                                value = phoneNumber,
+                                onValueChange = { if (it.length <= 15) phoneNumber = it },
+                                placeholder = { Text("Phone Number (10 digits)") },
+                                leadingIcon = { 
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(start = 12.dp, end = 8.dp)
+                                    ) {
+                                        Icon(Icons.Rounded.Phone, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("+91", fontWeight = FontWeight.Bold, color = TextDark)
+                                    }
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                enabled = authState !is AuthState.Loading,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = ElegantTeal,
+                                    unfocusedBorderColor = Color(0xFFF0F0F0)
+                                )
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = rememberMe,
-                                onCheckedChange = { rememberMe = it },
-                                colors = CheckboxDefaults.colors(checkedColor = ElegantTeal)
-                            )
-                            Text("Remember me", color = TextGrey, fontSize = 14.sp)
-                        }
-                        Text(
-                            text = "Forgot password?",
-                            color = Color(0xFFE91E63),
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp,
-                            modifier = Modifier.clickable { 
-                                navController.navigate(Screen.ForgotPassword.route)
+                    if (!isPhoneLogin) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = rememberMe,
+                                    onCheckedChange = { rememberMe = it },
+                                    colors = CheckboxDefaults.colors(checkedColor = ElegantTeal)
+                                )
+                                Text("Remember me", color = TextGrey, fontSize = 14.sp)
                             }
-                        )
+                            Text(
+                                text = "Forgot password?",
+                                color = Color(0xFFE91E63),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                modifier = Modifier.clickable { 
+                                    navController.navigate(Screen.ForgotPassword.route)
+                                }
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
                         onClick = { 
-                            if (email.isNotBlank() && password.isNotBlank()) {
-                                authViewModel.signIn(email, password)
+                            if (isPhoneLogin) {
+                                val state = authState
+                                if (state is AuthState.OtpSent) {
+                                    if (otpCode.length == 6) {
+                                        authViewModel.verifyOtp(state.verificationId, otpCode, role)
+                                    } else {
+                                        Toast.makeText(context, "Please enter 6-digit OTP", Toast.LENGTH_SHORT).show()
+                                    }
+                                } else {
+                                    if (phoneNumber.isNotBlank()) {
+                                        // Ensure E.164 format for India (+91)
+                                        val formattedNumber = if (phoneNumber.startsWith("+")) {
+                                            phoneNumber
+                                        } else if (phoneNumber.length == 10) {
+                                            "+91$phoneNumber"
+                                        } else {
+                                            phoneNumber // Try as is, but usually should be 10 digits
+                                        }
+                                        
+                                        if (formattedNumber.length >= 12) { // +91 + 10 digits
+                                            authViewModel.sendOtp(formattedNumber, context as Activity, role)
+                                        } else {
+                                            Toast.makeText(context, "Please enter a valid 10-digit number", Toast.LENGTH_SHORT).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Enter phone number", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                if (email.isNotBlank() && password.isNotBlank()) {
+                                    authViewModel.signIn(email, password)
+                                }
                             }
                         },
                         modifier = Modifier
@@ -271,7 +369,10 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                             if (authState is AuthState.Loading) {
                                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                             } else {
-                                Text("Sign In", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                val btnText = if (isPhoneLogin) {
+                                    if (authState is AuthState.OtpSent) "Verify OTP" else "Send OTP"
+                                } else "Sign In"
+                                Text(btnText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -321,15 +422,20 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                         }
                     }
                     OutlinedButton(
-                        onClick = { /* Phone Login */ },
+                        onClick = { 
+                            isPhoneLogin = !isPhoneLogin 
+                            authViewModel.resetState()
+                        },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Smartphone, contentDescription = null, modifier = Modifier.size(20.dp))
+                            val icon = if (isPhoneLogin) Icons.Rounded.Email else Icons.Rounded.Smartphone
+                            val text = if (isPhoneLogin) "Email" else "Phone OTP"
+                            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Phone OTP", color = TextDark, fontWeight = FontWeight.SemiBold)
+                            Text(text, color = TextDark, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
