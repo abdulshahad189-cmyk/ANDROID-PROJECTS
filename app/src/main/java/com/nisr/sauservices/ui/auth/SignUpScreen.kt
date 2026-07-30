@@ -1,10 +1,15 @@
+
 package com.nisr.sauservices.ui.auth
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -32,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
-import com.nisr.sauservices.data.model.User
-import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.viewmodel.AuthState
 import com.nisr.sauservices.ui.viewmodel.AuthViewModel
 
@@ -58,6 +65,21 @@ fun SignUpScreen(navController: NavController, role: String, authViewModel: Auth
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val authState by authViewModel.authState
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account.idToken?.let { idToken ->
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                authViewModel.signInWithGoogle(credential, role)
+            }
+        } catch (e: ApiException) {
+            // Handle error
+        }
+    }
 
     // Role specific fields
     var shopName by remember { mutableStateOf("") }
@@ -276,31 +298,27 @@ fun SignUpScreen(navController: NavController, role: String, authViewModel: Auth
                     Button(
                         onClick = { 
                             if (email.isNotBlank() && password.isNotBlank()) {
-                                val extraFields = mutableMapOf<String, String>()
+                                val userData = mutableMapOf<String, Any>(
+                                    "fullName" to fullName,
+                                    "phoneNumber" to phoneNumber,
+                                    "email" to email,
+                                    "role" to role
+                                )
                                 
                                 if (isShopkeeper) {
-                                    extraFields["shopName"] = shopName
-                                    extraFields["shopAddress"] = shopAddress
-                                    extraFields["shopCategory"] = shopCategory
+                                    userData["shopName"] = shopName
+                                    userData["shopAddress"] = shopAddress
+                                    userData["shopCategory"] = shopCategory
                                 }
                                 if (isWorker) {
-                                    extraFields["skillType"] = skillType
-                                    extraFields["experience"] = experience
+                                    userData["skillType"] = skillType
+                                    userData["experience"] = experience
                                 }
                                 if (isDelivery) {
-                                    extraFields["vehicleType"] = vehicleType
+                                    userData["vehicleType"] = vehicleType
                                 }
 
-                                val user = User(
-                                    id = "", // Will be set in repository
-                                    name = fullName,
-                                    phone = phoneNumber,
-                                    email = email,
-                                    role = role,
-                                    extraFields = extraFields
-                                )
-
-                                authViewModel.signUp(email, password, user)
+                                authViewModel.signUp(email, password, userData)
                             }
                         },
                         modifier = Modifier
@@ -360,9 +378,7 @@ fun SignUpScreen(navController: NavController, role: String, authViewModel: Auth
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { 
-                            // Supabase Google Login
-                        },
+                        onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
