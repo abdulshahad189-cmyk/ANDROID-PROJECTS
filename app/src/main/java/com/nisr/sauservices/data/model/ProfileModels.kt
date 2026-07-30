@@ -1,6 +1,7 @@
 package com.nisr.sauservices.data.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class UserProfile(
@@ -14,15 +15,16 @@ data class UserProfile(
 @Serializable
 data class Address(
     val id: String = "",
-    val full_name: String = "",
+    @SerialName("full_name") val fullName: String = "",
     val phone: String = "",
-    val house_no: String = "",
+    @SerialName("house_no") val houseNo: String = "",
     val street: String = "",
     val city: String = "",
     val state: String = "",
     val pincode: String = "",
     val landmark: String = "",
-    val is_default: Boolean = false
+    @SerialName("is_default") val isDefault: Boolean = false,
+    @SerialName("user_id") val userId: String = ""
 )
 
 @Serializable

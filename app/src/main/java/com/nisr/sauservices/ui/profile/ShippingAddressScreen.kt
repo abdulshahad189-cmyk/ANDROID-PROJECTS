@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.nisr.sauservices.ui.viewmodel.Address
+import com.nisr.sauservices.data.model.Address
 import com.nisr.sauservices.ui.viewmodel.ProfileViewModel
 
 // Local theme color if PinkPrimary is missing

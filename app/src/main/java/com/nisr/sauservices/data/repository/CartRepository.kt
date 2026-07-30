@@ -25,7 +25,6 @@ class CartRepository {
     }
 
     suspend fun addToCart(item: CartModel): Result<Unit> = try {
-        val userId = getUserId()
         withContext(Dispatchers.IO) {
             postgrest["cart_items"].insert(item.copy(itemId = ""))
         }
@@ -55,10 +54,9 @@ class CartRepository {
 
     @OptIn(SupabaseExperimental::class)
     fun getCartItems(): Flow<List<CartModel>> {
-        val userId = getUserId()
         return postgrest["cart_items"]
             .selectAsFlow(CartModel::itemId).map { list ->
-                list.filter { it.itemId.isNotEmpty() } // Or other logic if needed, but selectAsFlow usually takes a primary key
+                list.filter { it.itemId.isNotEmpty() }
             }.flowOn(Dispatchers.IO)
     }
 
@@ -83,7 +81,7 @@ class CartRepository {
     suspend fun placeOrder(order: OrderModel): Result<String> {
         return try {
             val userId = getUserId()
-            val finalOrder = order.copy(user_id = userId, status = "placed")
+            val finalOrder = order.copy(userId = userId, orderStatus = "placed")
             
             val insertedOrder = withContext(Dispatchers.IO) {
                 postgrest["orders"].insert(finalOrder) {
@@ -93,11 +91,11 @@ class CartRepository {
 
             order.items.filter { it.unit == "Booking" }.forEach { cartItem ->
                 val bookingData = BookingModel(
-                    user_id = userId,
-                    service_id = cartItem.productId,
-                    service_name = cartItem.itemName,
-                    scheduled_date = cartItem.date ?: "",
-                    scheduled_time = cartItem.time ?: "",
+                    userId = userId,
+                    serviceId = cartItem.productId,
+                    serviceName = cartItem.itemName,
+                    scheduleDate = cartItem.date ?: "",
+                    scheduleTime = cartItem.time ?: "",
                     status = "pending",
                     address = order.address
                 )
@@ -106,7 +104,7 @@ class CartRepository {
                 }
             }
 
-            Result.success(insertedOrder.id)
+            Result.success(insertedOrder.orderId)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -143,14 +141,14 @@ class CartRepository {
     @OptIn(SupabaseExperimental::class)
     fun getGlobalOrders(): Flow<List<OrderModel>> {
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::id)
+            .selectAsFlow(OrderModel::orderId)
             .flowOn(Dispatchers.IO)
     }
 
     @OptIn(SupabaseExperimental::class)
     fun getGlobalBookings(): Flow<List<BookingModel>> {
         return postgrest["bookings"]
-            .selectAsFlow(BookingModel::id)
+            .selectAsFlow(BookingModel::bookingId)
             .flowOn(Dispatchers.IO)
     }
 }

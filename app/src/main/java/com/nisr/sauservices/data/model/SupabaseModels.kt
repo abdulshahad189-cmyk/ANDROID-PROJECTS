@@ -107,17 +107,3 @@ data class ProductModel(
     val stock_quantity: Int = 0,
     val image_url: String? = null
 )
-
-@Serializable
-data class Address(
-    val id: String = "",
-    @SerialName("user_id") val userId: String = "",
-    val fullName: String = "",
-    val phone: String = "",
-    val houseNo: String = "",
-    val street: String = "",
-    val city: String = "",
-    val state: String = "",
-    val pincode: String = "",
-    val isDefault: Boolean = false
-)
