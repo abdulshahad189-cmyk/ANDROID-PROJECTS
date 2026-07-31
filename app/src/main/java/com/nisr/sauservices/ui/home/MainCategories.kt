@@ -80,7 +80,7 @@ fun CategoriesGrid(
             ) {
                 rowItems.forEach { item ->
                     CategoryCard(
-                        item = item, 
+                        item = item,
                         modifier = Modifier.weight(1f),
                         onClick = {
                             when (item.name) {
