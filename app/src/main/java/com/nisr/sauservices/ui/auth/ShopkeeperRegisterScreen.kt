@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.Screen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +38,8 @@ fun ShopkeeperRegisterScreen(navController: NavController, userRepository: UserR
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
     var shopNameError by remember { mutableStateOf<String?>(null) }
     var shopAddressError by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -149,8 +152,12 @@ fun ShopkeeperRegisterScreen(navController: NavController, userRepository: UserR
                                 email = email,
                                 extraFields = mapOf("shopName" to shopName, "shopAddress" to shopAddress)
                             )
-                            userRepository.registerUser(user)
-                            navController.navigate(Screen.ShopkeeperDashboard.route)
+                            scope.launch {
+                                val result = userRepository.registerUser(user)
+                                if (result.isSuccess) {
+                                    navController.navigate(Screen.ShopkeeperDashboard.route)
+                                }
+                            }
                         }
                     },
                     modifier = Modifier

@@ -1,5 +1,7 @@
 package com.nisr.sauservices.ui.auth
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,9 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
-import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PeachAccent
 import com.nisr.sauservices.ui.viewmodel.AuthState
@@ -44,6 +48,21 @@ fun CustomerSignUpScreen(navController: NavController, authViewModel: AuthViewMo
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val authState by authViewModel.authState
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account.idToken?.let { idToken ->
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                authViewModel.signInWithGoogle(credential, "customer")
+            }
+        } catch (e: ApiException) {
+            // Handle error
+        }
+    }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
@@ -164,14 +183,13 @@ fun CustomerSignUpScreen(navController: NavController, authViewModel: AuthViewMo
             Button(
                 onClick = { 
                     if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword) {
-                        val user = User(
-                            id = "", // Set by repo
-                            role = "customer",
-                            name = fullName,
-                            phone = phoneNumber,
-                            email = email
+                        val userData = mapOf(
+                            "fullName" to fullName,
+                            "phoneNumber" to phoneNumber,
+                            "email" to email,
+                            "role" to "customer"
                         )
-                        authViewModel.signUp(email, password, user)
+                        authViewModel.signUp(email, password, userData)
                     }
                 },
                 modifier = Modifier
@@ -215,9 +233,7 @@ fun CustomerSignUpScreen(navController: NavController, authViewModel: AuthViewMo
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { 
-                            // Supabase Google Login
-                        },
+                        onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color(0xFFEEEEEE))

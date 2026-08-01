@@ -1,14 +1,15 @@
 [versions]
 agp = "8.7.3"
-kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
+kotlin = "2.0.21"
 composeBom = "2024.10.01"
 navigationCompose = "2.8.3"
+firebaseBom = "33.5.1"
 googleAuth = "21.2.0"
 appcompat = "1.7.0"
 material = "1.12.0"
@@ -22,11 +23,6 @@ retrofit = "2.11.0"
 okhttp = "4.12.0"
 credentials = "1.5.0"
 googleid = "1.1.1"
-supabase = "3.0.1"
-ktor = "3.0.1"
-kotlinxSerializationJson = "1.7.3"
-androidxBrowser = "1.8.0"
-kotlinxCoroutines = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,6 +40,12 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "composeRuntimeLiveData" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-vertexai" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "googleAuth" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
@@ -58,28 +60,9 @@ google-identity-id = { group = "com.google.android.libraries.identity.googleid",
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
-
-# Supabase
-supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt", version.ref = "supabase" }
-supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt", version.ref = "supabase" }
-supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt", version.ref = "supabase" }
-supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt", version.ref = "supabase" }
-
-# Ktor
-ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
-ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
-ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
-ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-
-# Kotlinx
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version = "4.4.2" }

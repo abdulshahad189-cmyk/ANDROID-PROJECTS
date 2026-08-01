@@ -1,11 +1,8 @@
 package com.nisr.sauservices.data.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class CartModel(
-    val itemId: String = "", 
-    val productId: String = "",
+    val itemId: String = "", // Firebase unique key
+    val productId: String = "", // Product ID or Service ID
     val itemName: String = "",
     val price: Double = 0.0,
     val unit: String = "",
@@ -13,7 +10,7 @@ data class CartModel(
     val category: String = "",
     val subcategory: String = "",
     val totalPrice: Double = 0.0,
-    val date: String? = null,
-    val time: String? = null,
+    val date: String? = null, // For scheduled bookings
+    val time: String? = null, // For scheduled bookings
     val timestamp: Long = System.currentTimeMillis()
 )

@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -32,13 +32,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-        }
+    kotlinOptions {
+        jvmTarget = "11"
     }
-
     buildFeatures {
         compose = true
     }
@@ -65,26 +61,13 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
-
-    // Supabase
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-    implementation(libs.supabase.realtime)
-
-    // Ktor
-    implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-
-    // Kotlinx
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
+    implementation(libs.firebase.ai)
 
     // Retrofit & Networking
     implementation(libs.retrofit.core)
@@ -93,9 +76,6 @@ dependencies {
     implementation(libs.androidx.credentials.core)
     implementation(libs.androidx.credentials.play)
     implementation(libs.google.identity.id)
-
-    // Browser dependency
-    implementation(libs.androidx.browser)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
