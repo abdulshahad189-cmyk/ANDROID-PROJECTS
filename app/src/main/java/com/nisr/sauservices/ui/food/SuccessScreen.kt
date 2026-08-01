@@ -62,7 +62,7 @@ fun FoodSuccessScreen(navController: NavController, bookingsViewModel: BookingsV
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Your food is being prepared and will arrive shortly. Thank you for choosing SAU Services!",
+                text = "Your food is being prepared and will arrive shortly. Thank you for choosing SAU Solutions!",
                 fontSize = 16.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center

@@ -1,5 +1,6 @@
 package com.nisr.sauservices.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
@@ -102,24 +105,23 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable { navController.navigate(Screen.Home.route) }
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(PinkPrimary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("S", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                Image(
+                    painter = painterResource(id = R.drawable.ic_sau_logo),
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text("SAU", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = Color(0xFF001C3D), lineHeight = 18.sp)
+                    Text("SOLUTIONS", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = Color(0xFF007BFF), letterSpacing = 1.sp, lineHeight = 10.sp)
                 }
-                Spacer(Modifier.width(10.dp))
-                Text("SAU", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.Black)
             }
 
             // Location Pill (Blinkit Style)
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(50))
                     .background(Color(0xFFF5F5F5))
                     .clickable { navController.navigate(Screen.MapPicker.route) }
@@ -130,7 +132,7 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = userAddress,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -141,11 +143,11 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
 
             // Action Icons
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { navController.navigate(Screen.MyOrders.route) }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Outlined.ShoppingBag, null, tint = Color.DarkGray, modifier = Modifier.size(26.dp))
+                IconButton(onClick = { navController.navigate(Screen.MyOrders.route) }, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Outlined.ShoppingBag, null, tint = Color.DarkGray, modifier = Modifier.size(24.dp))
                 }
                 
-                IconButton(onClick = { navController.navigate(Screen.Cart.route) }, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = { navController.navigate(Screen.Cart.route) }, modifier = Modifier.size(36.dp)) {
                     BadgedBox(badge = {
                         if (cartCount > 0) {
                             Badge(containerColor = PinkPrimary) {
@@ -153,12 +155,12 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                             }
                         }
                     }) {
-                        Icon(Icons.Default.ShoppingCart, null, tint = Color.DarkGray, modifier = Modifier.size(26.dp))
+                        Icon(Icons.Default.ShoppingCart, null, tint = Color.DarkGray, modifier = Modifier.size(24.dp))
                     }
                 }
 
-                IconButton(onClick = { showLogoutDialog = true }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Outlined.Logout, contentDescription = "Logout", tint = Color.DarkGray, modifier = Modifier.size(26.dp))
+                IconButton(onClick = { showLogoutDialog = true }, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Outlined.Logout, contentDescription = "Logout", tint = Color.DarkGray, modifier = Modifier.size(24.dp))
                 }
             }
         }

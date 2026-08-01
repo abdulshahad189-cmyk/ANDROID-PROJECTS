@@ -15,7 +15,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         remoteMessage.notification?.let {
-            sendNotification(it.title ?: "SAU Services", it.body ?: "")
+            sendNotification(it.title ?: "SAU Solutions", it.body ?: "")
         }
     }
 
@@ -37,7 +37,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId,
-                "SAU Service Updates",
+                "SAU Solutions Updates",
                 NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }

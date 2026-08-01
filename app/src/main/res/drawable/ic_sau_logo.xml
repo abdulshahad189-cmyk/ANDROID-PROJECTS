@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <!-- Outer Circle -->
+    <path
+        android:pathData="M256,256m-240,0a240,240 0,1 1,480 0a240,240 0,1 1,-480 0"
+        android:strokeWidth="20"
+        android:strokeColor="#001C3D"/>
+
+    <!-- Stylized A / Triangle -->
+    <path
+        android:fillType="nonZero"
+        android:pathData="M256,100 L400,400 L350,400 L256,200 L162,400 L112,400 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="256"
+                android:startY="100"
+                android:endX="256"
+                android:endY="400"
+                android:type="linear">
+                <item android:offset="0" android:color="#001C3D"/>
+                <item android:offset="1" android:color="#007BFF"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Center detail -->
+    <path
+        android:pathData="M256,250 L300,350 L212,350 Z"
+        android:fillColor="#007BFF"/>
+</vector>

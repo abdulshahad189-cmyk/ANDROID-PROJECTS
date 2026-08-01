@@ -23,7 +23,7 @@ data class OnboardingItem(
     companion object {
         val items = listOf(
             OnboardingItem(
-                title = "Welcome to SAU Services",
+                title = "Welcome to SAU Solutions",
                 description = "All your daily services in one place. Fast, easy, reliable.",
                 image = R.drawable.drawable_illustration1
             ),

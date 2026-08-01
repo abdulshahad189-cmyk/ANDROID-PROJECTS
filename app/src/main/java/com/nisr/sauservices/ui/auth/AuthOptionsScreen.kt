@@ -80,7 +80,7 @@ fun AuthOptionsScreen(navController: NavController, role: String = "customer") {
 
             AuthOptionButton(
                 title = "Create Account",
-                description = "New to SAU Services? Join us",
+                description = "New to SAU Solutions? Join us",
                 icon = Icons.Rounded.PersonAdd,
                 onClick = { navController.navigate(Screen.SignUp.route) }
             )
