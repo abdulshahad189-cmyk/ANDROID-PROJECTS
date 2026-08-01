@@ -10,7 +10,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
@@ -18,6 +20,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.dashboard.ShopkeeperDashboardActivity
+import kotlinx.coroutines.launch
 
 class ShopkeeperRegisterActivity : AppCompatActivity() {
 
@@ -89,11 +92,18 @@ class ShopkeeperRegisterActivity : AppCompatActivity() {
                         "shopAddress" to shopAddressInput.editText?.text.toString()
                     )
                 )
-                userRepository.registerUser(user)
-                val intent = Intent(this, ShopkeeperDashboardActivity::class.java)
-                intent.putExtra("ROLE", "shopkeeper")
-                startActivity(intent)
-                finish()
+                
+                lifecycleScope.launch {
+                    val result = userRepository.registerUser(user)
+                    if (result.isSuccess) {
+                        val intent = Intent(this@ShopkeeperRegisterActivity, ShopkeeperDashboardActivity::class.java)
+                        intent.putExtra("ROLE", "shopkeeper")
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this@ShopkeeperRegisterActivity, "Registration failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
 

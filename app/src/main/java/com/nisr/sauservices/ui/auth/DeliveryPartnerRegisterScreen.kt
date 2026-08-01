@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.Screen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,8 @@ fun DeliveryPartnerRegisterScreen(navController: NavController, userRepository: 
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
     var vehicleNumberError by remember { mutableStateOf<String?>(null) }
     var addressError by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -181,8 +184,12 @@ fun DeliveryPartnerRegisterScreen(navController: NavController, userRepository: 
                                     "address" to address
                                 )
                             )
-                            userRepository.registerUser(user)
-                            navController.navigate(Screen.DeliveryDashboard.route)
+                            scope.launch {
+                                val result = userRepository.registerUser(user)
+                                if (result.isSuccess) {
+                                    navController.navigate(Screen.DeliveryDashboard.route)
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
