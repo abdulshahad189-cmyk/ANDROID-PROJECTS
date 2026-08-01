@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -248,7 +249,7 @@ fun CustomerSignUpScreen(navController: NavController, authViewModel: AuthViewMo
                         }
                     }
                     OutlinedButton(
-                        onClick = { /* Phone Login */ },
+                        onClick = { navController.navigate(Screen.PhoneLogin.route) },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color(0xFFEEEEEE))
@@ -305,21 +306,18 @@ fun SignUpTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.LightGray) },
+            placeholder = { Text(placeholder, color = Color.Gray) },
+            leadingIcon = { Icon(icon, contentDescription = null, tint = PeachAccent) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = enabled,
             shape = RoundedCornerShape(12.dp),
+            enabled = enabled,
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            leadingIcon = { Icon(icon, contentDescription = null, tint = Color.LightGray) },
-            trailingIcon = if (isPassword) {
-                { Icon(Icons.Default.VisibilityOff, contentDescription = null, tint = Color.LightGray) }
-            } else null,
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PeachAccent,
                 unfocusedBorderColor = Color(0xFFEEEEEE),
-                focusedContainerColor = Color(0xFFF9F9F9),
-                unfocusedContainerColor = Color(0xFFF9F9F9)
+                focusedContainerColor = Color(0xFFFAFAFA),
+                unfocusedContainerColor = Color(0xFFFAFAFA)
             )
         )
     }

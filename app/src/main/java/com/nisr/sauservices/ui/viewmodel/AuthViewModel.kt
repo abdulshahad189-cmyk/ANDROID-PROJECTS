@@ -4,9 +4,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.AuthCredential
-import com.google.firebase.auth.FirebaseUser
 import com.nisr.sauservices.data.repository.UserRepository
+import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.launch
 
 class AuthViewModel(private val userRepository: UserRepository = UserRepository()) : ViewModel() {
@@ -14,7 +13,7 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
     private val _authState = mutableStateOf<AuthState>(AuthState.Idle)
     val authState: State<AuthState> = _authState
 
-    val currentUser: FirebaseUser?
+    val currentUser: UserInfo?
         get() = userRepository.getCurrentUser()
 
     fun signIn(email: String, password: String) {
@@ -22,11 +21,12 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
             _authState.value = AuthState.Loading
             val result = userRepository.signIn(email, password)
             _authState.value = result.fold(
-                onSuccess = { user ->
+                onSuccess = {
+                    val user = userRepository.getCurrentUser()
                     if (user != null) {
-                        val dataResult = userRepository.getUserData(user.uid)
+                        val dataResult = userRepository.getUserData(user.id)
                         dataResult.fold(
-                            onSuccess = { AuthState.Success(user, it) },
+                            onSuccess = { AuthState.Success(user, it?.mapValues { entry -> entry.value as Any }) },
                             onFailure = { AuthState.Error(it.message ?: "Failed to fetch user data") }
                         )
                     } else {
@@ -38,33 +38,21 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
         }
     }
 
-    fun signInWithGoogle(credential: AuthCredential, role: String) {
+    fun signInWithGoogle(idToken: String, role: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = userRepository.signInWithCredential(credential)
+            val result = userRepository.signInWithGoogle(idToken)
             _authState.value = result.fold(
-                onSuccess = { user ->
+                onSuccess = {
+                    val user = userRepository.getCurrentUser()
                     if (user != null) {
-                        // Check if user data exists, if not create it with the role
-                        val dataResult = userRepository.getUserData(user.uid)
+                        val dataResult = userRepository.getUserData(user.id)
                         dataResult.fold(
-                            onSuccess = { existingData ->
-                                if (existingData == null) {
-                                    val newData = mapOf(
-                                        "fullName" to (user.displayName ?: ""),
-                                        "email" to (user.email ?: ""),
-                                        "role" to role,
-                                        "phoneNumber" to (user.phoneNumber ?: "")
-                                    )
-                                    viewModelScope.launch {
-                                        userRepository.saveUserData(user.uid, newData)
-                                    }
-                                    AuthState.Success(user, newData)
-                                } else {
-                                    AuthState.Success(user, existingData)
-                                }
-                            },
-                            onFailure = { AuthState.Error(it.message ?: "Failed to fetch user data") }
+                            onSuccess = { AuthState.Success(user, it?.mapValues { entry -> entry.value as Any }) },
+                            onFailure = { 
+                                // First time Google Sign-In, might not have data yet
+                                AuthState.Success(user, mapOf("role" to role))
+                            }
                         )
                     } else {
                         AuthState.Error("Google Sign-In failed")
@@ -80,15 +68,53 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
             _authState.value = AuthState.Loading
             val result = userRepository.signUp(email, password, userData)
             _authState.value = result.fold(
-                onSuccess = { AuthState.Success(it, userData) },
+                onSuccess = {
+                    val user = userRepository.getCurrentUser()
+                    AuthState.Success(user, userData)
+                },
                 onFailure = { AuthState.Error(it.message ?: "Registration failed") }
             )
         }
     }
 
+    fun sendOtp(phone: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            val result = userRepository.sendOtp(phone)
+            _authState.value = result.fold(
+                onSuccess = { AuthState.Idle },
+                onFailure = { AuthState.Error(it.message ?: "Failed to send OTP") }
+            )
+        }
+    }
+
+    fun verifyOtp(phone: String, token: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            val result = userRepository.verifyOtp(phone, token)
+            _authState.value = result.fold(
+                onSuccess = {
+                    val user = userRepository.getCurrentUser()
+                    if (user != null) {
+                        val dataResult = userRepository.getUserData(user.id)
+                        dataResult.fold(
+                            onSuccess = { AuthState.Success(user, it?.mapValues { entry -> entry.value as Any }) },
+                            onFailure = { AuthState.Success(user, null) }
+                        )
+                    } else {
+                        AuthState.Error("Verification failed")
+                    }
+                },
+                onFailure = { AuthState.Error(it.message ?: "Invalid OTP") }
+            )
+        }
+    }
+
     fun logout() {
-        userRepository.logout()
-        _authState.value = AuthState.Idle
+        viewModelScope.launch {
+            userRepository.logout()
+            _authState.value = AuthState.Idle
+        }
     }
     
     fun resetState() {
@@ -99,6 +125,6 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    data class Success(val user: FirebaseUser?, val userData: Map<String, Any>? = null) : AuthState()
+    data class Success(val user: UserInfo?, val userData: Map<String, Any>? = null) : AuthState()
     data class Error(val message: String) : AuthState()
 }

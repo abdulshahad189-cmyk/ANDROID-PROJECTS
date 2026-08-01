@@ -34,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
@@ -67,8 +66,7 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
         try {
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, "customer")
+                authViewModel.signInWithGoogle(idToken, "customer")
             }
         } catch (e: ApiException) {
             // Handle error
@@ -321,7 +319,7 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                         }
                     }
                     OutlinedButton(
-                        onClick = { /* Phone Login */ },
+                        onClick = { navController.navigate(Screen.PhoneLogin.route) },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFF0F0F0))

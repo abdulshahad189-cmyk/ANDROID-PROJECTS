@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -346,18 +345,35 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        SocialButton(
+                        OutlinedButton(
                             onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
-                            icon = R.drawable.ic_google,
-                            text = "Google",
-                            modifier = Modifier.weight(1f)
-                        )
-                        SocialButton(
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "Google",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Google", color = TextDark, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                        OutlinedButton(
                             onClick = { navController.navigate(Screen.PhoneLogin.route) },
-                            icon = Icons.Rounded.Smartphone,
-                            text = "Phone OTP",
-                            modifier = Modifier.weight(1f)
-                        )
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Smartphone, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Phone OTP", color = TextDark, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
             }
