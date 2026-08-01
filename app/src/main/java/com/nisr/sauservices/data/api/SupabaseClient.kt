@@ -7,7 +7,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 
-object SupabaseConfig {
+object SupabaseClient {
     // Replace with your actual Supabase URL and Anon Key
     const val SUPABASE_URL = "https://your-project-id.supabase.co"
     const val SUPABASE_ANON_KEY = "your-anon-key"
