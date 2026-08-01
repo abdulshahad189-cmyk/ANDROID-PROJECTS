@@ -29,7 +29,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.ui.Screen
@@ -56,8 +55,7 @@ fun CustomerSignUpScreen(navController: NavController, authViewModel: AuthViewMo
         try {
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, "customer")
+                authViewModel.signInWithGoogle(idToken, "customer")
             }
         } catch (e: ApiException) {
             // Handle error

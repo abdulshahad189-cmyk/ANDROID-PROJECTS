@@ -43,6 +43,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login/{role}") {
         fun createRoute(role: String) = "login/$role"
     }
+    object PhoneLogin : Screen("phone_login")
     object Register : Screen("register")
     object BookingSummary : Screen("booking_summary")
     object BookingSuccess : Screen("service_booking_success")

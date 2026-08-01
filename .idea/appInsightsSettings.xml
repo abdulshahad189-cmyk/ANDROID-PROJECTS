@@ -9,8 +9,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.nisr.sauservices" />
-                  <option name="mobileSdkAppId" value="1:667407477969:android:0dc87ec6fa979d4e8ba9f0" />
+                  <option name="appId" value="com.nisr.sau" />
+                  <option name="mobileSdkAppId" value="1:667407477969:android:a085c8cb5bdead868ba9f0" />
                   <option name="projectId" value="sau-services" />
                   <option name="projectNumber" value="667407477969" />
                 </ConnectionSetting>
