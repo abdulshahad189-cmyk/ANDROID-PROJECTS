@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
@@ -16,6 +17,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.dashboard.ServiceWorkerDashboardActivity
+import kotlinx.coroutines.launch
 
 class ServiceWorkerRegisterActivity : AppCompatActivity() {
 
@@ -101,11 +103,18 @@ class ServiceWorkerRegisterActivity : AppCompatActivity() {
                         "experience" to experienceInput.editText?.text.toString()
                     )
                 )
-                userRepository.registerUser(user)
-                val intent = Intent(this, ServiceWorkerDashboardActivity::class.java)
-                intent.putExtra("ROLE", "service_worker")
-                startActivity(intent)
-                finish()
+                
+                lifecycleScope.launch {
+                    val result = userRepository.registerUser(user)
+                    if (result.isSuccess) {
+                        val intent = Intent(this@ServiceWorkerRegisterActivity, ServiceWorkerDashboardActivity::class.java)
+                        intent.putExtra("ROLE", "service_worker")
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this@ServiceWorkerRegisterActivity, "Registration failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
 

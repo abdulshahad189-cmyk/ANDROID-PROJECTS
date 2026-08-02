@@ -135,6 +135,10 @@ fun AppNavHost(navController: NavHostController) {
             val role = backStackEntry.arguments?.getString("role") ?: "customer"
             SignInScreen(navController, role) 
         }
+
+        composable(Screen.PhoneLogin.route) {
+            PhoneLoginScreen(navController)
+        }
         
         composable(
             route = Screen.SignUp.route,
