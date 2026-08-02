@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SAU SERVICES"
+rootProject.name = "SAU SOLUTIONS"
 include(":app")

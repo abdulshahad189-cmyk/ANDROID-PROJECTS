@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,44 +18,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.nisr.sauservices.data.api.SupabaseClient
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.nisr.sauservices.data.local.SessionManager
-import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.viewmodel.CartViewModel
-import io.github.jan.supabase.annotations.SupabaseExperimental
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.filter.FilterOperation
-import io.github.jan.supabase.realtime.selectAsFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 
-@OptIn(SupabaseExperimental::class)
 @Composable
 fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var userAddress by remember { mutableStateOf("Set Location") }
-    val user = SupabaseClient.client.auth.currentUserOrNull()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
     val cartViewModel: CartViewModel = viewModel()
     val cartItems by cartViewModel.dbCartItems.collectAsState()
     val cartCount = cartItems.sumOf { it.quantity }
+    
+    val databaseUrl = "https://sau-services-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
-    LaunchedEffect(user?.id) {
-        user?.id?.let { uid ->
-            SupabaseClient.client.postgrest["users"]
-                .selectAsFlow(User::id, filter = FilterOperation { eq("id", uid) })
-                .map { it.firstOrNull()?.address ?: "Set Location" }
-                .collectLatest { address ->
-                    userAddress = address
+    // Real-time listener for address
+    LaunchedEffect(userId) {
+        userId?.let { uid ->
+            val ref = FirebaseDatabase.getInstance(databaseUrl).reference.child("users").child(uid).child("selectedLocation").child("address")
+            ref.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userAddress = snapshot.getValue(String::class.java) ?: "Set Location"
                 }
+                override fun onCancelled(error: DatabaseError) {}
+            })
         }
     }
 
@@ -114,7 +115,7 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 Text("SAU", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.Black)
             }
 
-            // Location Pill
+            // Location Pill (Blinkit Style)
             Row(
                 modifier = Modifier
                     .weight(1f)

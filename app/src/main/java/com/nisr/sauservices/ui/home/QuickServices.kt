@@ -63,7 +63,7 @@ fun QuickServicesRow(navController: NavController) {
                     Icon(
                         item.icon,
                         contentDescription = item.name,
-                        tint = Color.DarkGray,
+                        tint = Color(0xFF001C3D),
                         modifier = Modifier.size(30.dp)
                     )
                 }
