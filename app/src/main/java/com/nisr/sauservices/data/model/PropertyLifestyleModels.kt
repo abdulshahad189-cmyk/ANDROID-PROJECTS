@@ -1,7 +1,8 @@
 package com.nisr.sauservices.data.model
 
-import com.google.firebase.database.IgnoreExtraProperties
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PLSCategory(
     val id: String = "",
     val name: String = "",
@@ -9,7 +10,7 @@ data class PLSCategory(
     val subcategories: List<String> = emptyList()
 )
 
-@IgnoreExtraProperties
+@Serializable
 data class PLSService(
     val id: String = "",
     val name: String = "",
@@ -21,7 +22,7 @@ data class PLSService(
     val isEnabled: Boolean = true
 )
 
-@IgnoreExtraProperties
+@Serializable
 data class PLSBooking(
     val id: String = "",
     val userId: String = "",

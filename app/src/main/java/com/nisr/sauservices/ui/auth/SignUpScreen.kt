@@ -2,11 +2,16 @@ package com.nisr.sauservices.ui.auth
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -17,6 +22,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -36,7 +43,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
@@ -70,29 +76,23 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
         try {
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, "customer")
+                authViewModel.signInWithGoogle(idToken, role)
             }
-        } catch (e: ApiException) {
-            // Handle error
-        }
+        } catch (e: ApiException) { }
     }
-
-    val headerTitle = "Create Account"
-    val headerSubtitle = "Start ordering services in minutes"
-    val headerIcon = Icons.Rounded.PersonAdd
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             sessionManager.saveLoginState(true)
             sessionManager.saveUserRole("customer")
-            
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }
             }
             authViewModel.resetState()
         }
     }
+
+    val animateState = remember { MutableTransitionState(false) }.apply { targetState = true }
 
     Box(
         modifier = Modifier
@@ -103,6 +103,15 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                 )
             )
     ) {
+        // Decorative background
+        Box(
+            modifier = Modifier
+                .size(400.dp)
+                .offset(x = 200.dp, y = (-150).dp)
+                .clip(CircleShape)
+                .background(ElegantTeal.copy(alpha = 0.05f))
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,14 +134,27 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                     .padding(top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Pulse Animation for Icon
+                val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                val iconScale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.05f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+
                 Box(
                     modifier = Modifier
                         .size(80.dp)
+                        .scale(iconScale)
                         .background(ElegantTeal.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        headerIcon,
+                        Icons.Rounded.PersonAdd,
                         contentDescription = null,
                         tint = ElegantTeal,
                         modifier = Modifier.size(32.dp)
@@ -142,14 +164,14 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = headerTitle,
+                    text = "Create Account",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextDark,
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = headerSubtitle,
+                    text = "Start ordering services in minutes",
                     fontSize = 15.sp,
                     color = TextGrey,
                     modifier = Modifier.padding(top = 8.dp)
@@ -158,173 +180,199 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            AnimatedVisibility(
+                visibleState = animateState,
+                enter = slideInVertically(initialOffsetY = { it / 3 }) + fadeIn()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    if (authState is AuthState.Error) {
-                        Text(
-                            text = (authState as AuthState.Error).message,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-
-                    SignUpField(
-                        value = fullName,
-                        onValueChange = { fullName = it },
-                        placeholder = "Full Name",
-                        icon = Icons.Rounded.Person
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SignUpField(
-                        value = phoneNumber,
-                        onValueChange = { phoneNumber = it },
-                        placeholder = "Phone Number",
-                        icon = Icons.Rounded.Smartphone,
-                        keyboardType = KeyboardType.Phone
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SignUpField(
-                        value = email,
-                        onValueChange = { email = it },
-                        placeholder = "Email Address",
-                        icon = Icons.Rounded.AlternateEmail,
-                        keyboardType = KeyboardType.Email
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        placeholder = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                        trailingIcon = {
-                            val image = if (passwordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(image, "Toggle visibility", modifier = Modifier.size(20.dp))
-                            }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = authState !is AuthState.Loading,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ElegantTeal,
-                            unfocusedBorderColor = Color(0xFFF0F0F0),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = { 
-                            if (email.isNotBlank() && password.isNotBlank()) {
-                                val userData = mapOf<String, Any>(
-                                    "fullName" to fullName,
-                                    "phoneNumber" to phoneNumber,
-                                    "email" to email,
-                                    "role" to "customer"
-                                )
-                                
-                                authViewModel.signUp(email, password, userData)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .shadow(
-                                elevation = 12.dp,
-                                shape = RoundedCornerShape(16.dp),
-                                spotColor = ElegantTeal
-                            ),
-                        enabled = authState !is AuthState.Loading,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent
-                        ),
-                        contentPadding = PaddingValues()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))),
-                            contentAlignment = Alignment.Center
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        AnimatedVisibility(
+                            visible = authState is AuthState.Error,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
                         ) {
-                            if (authState is AuthState.Loading) {
-                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                            } else {
-                                Text("Create Account", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = (authState as? AuthState.Error)?.message ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                        }
+
+                        SignUpField(
+                            value = fullName,
+                            onValueChange = { fullName = it },
+                            placeholder = "Full Name",
+                            icon = Icons.Rounded.Person,
+                            enabled = authState !is AuthState.Loading
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        SignUpField(
+                            value = phoneNumber,
+                            onValueChange = { phoneNumber = it },
+                            placeholder = "Phone Number",
+                            icon = Icons.Rounded.Smartphone,
+                            keyboardType = KeyboardType.Phone,
+                            enabled = authState !is AuthState.Loading
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        SignUpField(
+                            value = email,
+                            onValueChange = { email = it },
+                            placeholder = "Email Address",
+                            icon = Icons.Rounded.AlternateEmail,
+                            keyboardType = KeyboardType.Email,
+                            enabled = authState !is AuthState.Loading
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            placeholder = { Text("Password") },
+                            leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                            trailingIcon = {
+                                val image = if (passwordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(image, "Toggle visibility", modifier = Modifier.size(20.dp))
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = authState !is AuthState.Loading,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = ElegantTeal,
+                                unfocusedBorderColor = Color(0xFFF0F0F0),
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val isPressed by interactionSource.collectIsPressedAsState()
+                        val scale by animateFloatAsState(
+                            if (isPressed) 0.96f else 1f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "btnScale"
+                        )
+
+                        Button(
+                            onClick = { 
+                                if (email.isNotBlank() && password.isNotBlank()) {
+                                    val userData = mapOf<String, Any>(
+                                        "fullName" to fullName,
+                                        "phoneNumber" to phoneNumber,
+                                        "email" to email,
+                                        "role" to "customer"
+                                    )
+                                    authViewModel.signUp(email, password, userData)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .scale(scale)
+                                .shadow(
+                                    elevation = 12.dp,
+                                    shape = RoundedCornerShape(16.dp),
+                                    spotColor = ElegantTeal
+                                ),
+                            enabled = authState !is AuthState.Loading,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            contentPadding = PaddingValues(),
+                            interactionSource = interactionSource
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AnimatedContent(targetState = authState is AuthState.Loading, label = "btn") { isLoading ->
+                                    if (isLoading) {
+                                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                                    } else {
+                                        Text("Create Account", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-                    Text(
-                        " OR CONTINUE WITH ",
-                        color = TextGrey,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+            AnimatedVisibility(
+                visibleState = animateState,
+                enter = fadeIn(animationSpec = tween(1000, delayMillis = 400))
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_google),
-                                contentDescription = "Google",
-                                tint = Color.Unspecified,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Google", color = TextDark, fontWeight = FontWeight.SemiBold)
-                        }
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                        Text(
+                            " OR CONTINUE WITH ",
+                            color = TextGrey,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
                     }
-                    OutlinedButton(
-                        onClick = { /* Phone Login */ },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Smartphone, contentDescription = null, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Phone OTP", color = TextDark, fontWeight = FontWeight.SemiBold)
+                        OutlinedButton(
+                            onClick = { GoogleSignInUtils.launchGoogleSignIn(context, googleLauncher) },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "Google",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Google", color = TextDark, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = { navController.navigate(Screen.PhoneLogin.route) },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Smartphone, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Phone OTP", color = TextDark, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
@@ -371,7 +419,8 @@ fun SignUpField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -381,6 +430,7 @@ fun SignUpField(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        enabled = enabled,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = ElegantTeal,
             unfocusedBorderColor = Color(0xFFF0F0F0),

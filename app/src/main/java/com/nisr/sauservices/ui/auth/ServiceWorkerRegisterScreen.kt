@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.Screen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +43,8 @@ fun ServiceWorkerRegisterScreen(navController: NavController, userRepository: Us
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
     var experienceError by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -165,8 +168,12 @@ fun ServiceWorkerRegisterScreen(navController: NavController, userRepository: Us
                                 email = email,
                                 extraFields = mapOf("category" to category, "experience" to experience)
                             )
-                            userRepository.registerUser(user)
-                            navController.navigate(Screen.ServiceWorkerDashboard.route)
+                            scope.launch {
+                                val result = userRepository.registerUser(user)
+                                if (result.isSuccess) {
+                                    navController.navigate(Screen.ServiceWorkerDashboard.route)
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
