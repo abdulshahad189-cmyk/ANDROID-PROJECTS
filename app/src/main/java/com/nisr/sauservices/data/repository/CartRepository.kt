@@ -7,7 +7,7 @@ import com.nisr.sauservices.data.model.OrderModel
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.postgrest.query.filter.eq
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 class CartRepository {
     private val auth = SupabaseClient.client.auth
     private val postgrest = SupabaseClient.client.postgrest
-    private val realtime = SupabaseClient.client.realtime
 
     private fun getUserId(): String {
         return auth.currentUserOrNull()?.id ?: "anonymous"
@@ -37,13 +36,17 @@ class CartRepository {
         withContext(Dispatchers.IO) {
             if (newQuantity <= 0) {
                 postgrest["cart_items"].delete {
-                    filter { eq("id", itemId) }
+                    filter {
+                        eq("id", itemId)
+                    }
                 }
             } else {
                 postgrest["cart_items"].update({
                     set("quantity", newQuantity)
                 }) {
-                    filter { eq("id", itemId) }
+                    filter {
+                        eq("id", itemId)
+                    }
                 }
             }
         }
@@ -60,9 +63,17 @@ class CartRepository {
             }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun removeItem(itemId: String) = withContext(Dispatchers.IO) {
-        postgrest["cart_items"].delete {
-            filter { eq("id", itemId) }
+    suspend fun removeItem(itemId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                postgrest["cart_items"].delete {
+                    filter {
+                        eq("id", itemId)
+                    }
+                }
+            } catch (e: Exception) {
+                // handle error
+            }
         }
     }
 
@@ -70,7 +81,9 @@ class CartRepository {
         val userId = getUserId()
         withContext(Dispatchers.IO) {
             postgrest["cart_items"].delete {
-                filter { eq("user_id", userId) }
+                filter {
+                    eq("user_id", userId)
+                }
             }
         }
         Result.success(Unit)
@@ -81,7 +94,7 @@ class CartRepository {
     suspend fun placeOrder(order: OrderModel): Result<String> {
         return try {
             val userId = getUserId()
-            val finalOrder = order.copy(userId = userId, orderStatus = "placed")
+            val finalOrder = order.copy(userId = userId, status = "placed")
             
             val insertedOrder = withContext(Dispatchers.IO) {
                 postgrest["orders"].insert(finalOrder) {
@@ -104,7 +117,7 @@ class CartRepository {
                 }
             }
 
-            Result.success(insertedOrder.orderId)
+            Result.success(insertedOrder.id)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -116,7 +129,9 @@ class CartRepository {
                 set("status", newStatus)
                 if (staffId != null) set("delivery_partner_id", staffId)
             }) {
-                filter { eq("id", orderId) }
+                filter {
+                    eq("id", orderId)
+                }
             }
         }
         Result.success(Unit)
@@ -130,7 +145,9 @@ class CartRepository {
                 set("status", newStatus)
                 if (workerId != null) set("provider_id", workerId)
             }) {
-                filter { eq("id", bookingId) }
+                filter {
+                    eq("id", bookingId)
+                }
             }
         }
         Result.success(Unit)
@@ -141,14 +158,14 @@ class CartRepository {
     @OptIn(SupabaseExperimental::class)
     fun getGlobalOrders(): Flow<List<OrderModel>> {
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::orderId)
+            .selectAsFlow(OrderModel::id)
             .flowOn(Dispatchers.IO)
     }
 
     @OptIn(SupabaseExperimental::class)
     fun getGlobalBookings(): Flow<List<BookingModel>> {
         return postgrest["bookings"]
-            .selectAsFlow(BookingModel::bookingId)
+            .selectAsFlow(BookingModel::id)
             .flowOn(Dispatchers.IO)
     }
 }

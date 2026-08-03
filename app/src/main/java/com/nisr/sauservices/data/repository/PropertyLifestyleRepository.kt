@@ -6,6 +6,7 @@ import com.nisr.sauservices.data.model.PLSService
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,10 +20,9 @@ class PropertyLifestyleRepository {
 
     @OptIn(SupabaseExperimental::class)
     fun getServices(subcategory: String? = null): Flow<List<PLSService>> {
+        val filter = if (subcategory != null) FilterOperation("subcategory", FilterOperator.EQ, subcategory) else null
         return postgrest["pls_services"]
-            .selectAsFlow(PLSService::id, filter = if (subcategory != null) {
-                FilterOperation { eq("subcategory", subcategory) }
-            } else null).flowOn(Dispatchers.IO)
+            .selectAsFlow(PLSService::id, filter = filter).flowOn(Dispatchers.IO)
     }
 
     suspend fun addService(service: PLSService): Result<Unit> = try {
@@ -54,10 +54,9 @@ class PropertyLifestyleRepository {
 
     @OptIn(SupabaseExperimental::class)
     fun getBookings(userId: String? = null): Flow<List<PLSBooking>> {
+        val filter = if (userId != null) FilterOperation("user_id", FilterOperator.EQ, userId) else null
         return postgrest["pls_bookings"]
-            .selectAsFlow(PLSBooking::id, filter = if (userId != null) {
-                FilterOperation { eq("user_id", userId) }
-            } else null).flowOn(Dispatchers.IO)
+            .selectAsFlow(PLSBooking::id, filter = filter).flowOn(Dispatchers.IO)
     }
 
     suspend fun updateBookingStatus(bookingId: String, status: String): Result<Unit> = try {

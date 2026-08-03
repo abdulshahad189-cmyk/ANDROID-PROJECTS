@@ -5,7 +5,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.nisr.sauservices.data.api.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.eq
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,21 +25,21 @@ class LiveTrackingManager(
     private val postgrest = SupabaseClient.client.postgrest
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    @OptIn(SupabaseExperimental::class)
     fun startListening() {
         val table = if (isWorker) "worker_locations" else "delivery_locations"
         
         scope.launch {
-            postgrest[table].selectAsFlow(LocationSnapshot::user_id) {
-                filter { eq("user_id", id) }
-            }.collectLatest { list ->
-                val snapshot = list.firstOrNull() ?: return@collectLatest
-                val newPos = LatLng(snapshot.latitude, snapshot.longitude)
+            postgrest[table].selectAsFlow(LocationSnapshot::user_id, filter = eq("user_id", id))
+                .collectLatest { list ->
+                    val snapshot = list.firstOrNull() ?: return@collectLatest
+                    val newPos = LatLng(snapshot.latitude, snapshot.longitude)
 
-                marker?.let {
-                    MarkerAnimator.animateMarker(it, newPos)
+                    marker?.let {
+                        MarkerAnimator.animateMarker(it, newPos)
+                    }
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newPos, 16f))
                 }
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(newPos, 16f))
-            }
         }
     }
 }

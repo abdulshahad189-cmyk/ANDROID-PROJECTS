@@ -6,7 +6,8 @@ import com.nisr.sauservices.data.model.OrderModel
 import com.nisr.sauservices.data.model.Delivery
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.filter.eq
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,9 +21,7 @@ class DashboardRepository {
     @OptIn(SupabaseExperimental::class)
     fun listenToAssignedBookings(workerId: String): Flow<List<BookingModel>> {
         return postgrest["bookings"]
-            .selectAsFlow(BookingModel::bookingId, filter = {
-                eq("provider_id", workerId)
-            })
+            .selectAsFlow(BookingModel::id, filter = FilterOperation("provider_id", FilterOperator.EQ, workerId))
     }
 
     // --- SHOPKEEPER LOGIC ---
@@ -30,9 +29,7 @@ class DashboardRepository {
     @OptIn(SupabaseExperimental::class)
     fun listenToShopOrders(shopId: String): Flow<List<OrderModel>> {
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::orderId, filter = {
-                eq("shop_id", shopId)
-            })
+            .selectAsFlow(OrderModel::id, filter = FilterOperation("shop_id", FilterOperator.EQ, shopId))
     }
 
     // --- DELIVERY LOGIC ---
@@ -40,9 +37,7 @@ class DashboardRepository {
     @OptIn(SupabaseExperimental::class)
     fun listenToAvailableDeliveries(): Flow<List<Delivery>> {
         return postgrest["deliveries"]
-            .selectAsFlow(Delivery::id, filter = {
-                eq("status", "Assigned")
-            })
+            .selectAsFlow(Delivery::id, filter = FilterOperation("status", FilterOperator.EQ, "Assigned"))
     }
 
     // --- AUTOMATION LINKING ---

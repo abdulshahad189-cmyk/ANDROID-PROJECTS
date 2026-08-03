@@ -4,6 +4,8 @@ import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.OrderModel
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -25,9 +27,8 @@ class OrderRepository {
     @OptIn(SupabaseExperimental::class)
     fun getMyOrders(userId: String): Flow<List<OrderModel>> {
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::id, filter = {
-                eq("user_id", userId)
-            }).flowOn(Dispatchers.IO)
+            .selectAsFlow(OrderModel::id, filter = FilterOperation("user_id", FilterOperator.EQ, userId))
+            .flowOn(Dispatchers.IO)
     }
 
     suspend fun updateOrderStatus(orderId: String, status: String): Result<Unit> = try {
@@ -35,7 +36,9 @@ class OrderRepository {
             postgrest["orders"].update({
                 set("status", status)
             }) {
-                filter { eq("id", orderId) }
+                filter {
+                    eq("id", orderId)
+                }
             }
         }
         Result.success(Unit)

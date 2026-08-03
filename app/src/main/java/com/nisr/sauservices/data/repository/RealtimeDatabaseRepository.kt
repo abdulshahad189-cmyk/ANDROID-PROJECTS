@@ -19,7 +19,7 @@ class RealtimeDatabaseRepository {
 
     suspend fun placeOrderDirectly(order: OrderModel): Result<String> = try {
         val userId = getCurrentUserId() ?: "anonymous"
-        val finalOrder = order.copy(user_id = userId)
+        val finalOrder = order.copy(userId = userId)
         
         val inserted = withContext(Dispatchers.IO) {
             postgrest["orders"].insert(finalOrder) {
@@ -36,8 +36,9 @@ class RealtimeDatabaseRepository {
     fun observeUserActivity(): Flow<List<OrderModel>> {
         val userId = getCurrentUserId() ?: "anonymous"
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::id, filter = {
+            .selectAsFlow(OrderModel::id) {
                 eq("user_id", userId)
-            }).flowOn(Dispatchers.IO)
+            }
+            .flowOn(Dispatchers.IO)
     }
 }

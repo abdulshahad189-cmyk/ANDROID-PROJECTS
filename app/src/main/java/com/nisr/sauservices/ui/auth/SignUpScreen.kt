@@ -1,5 +1,6 @@
 package com.nisr.sauservices.ui.auth
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -36,7 +37,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
@@ -70,8 +70,8 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
         try {
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, "customer")
+                // TODO: Supabase Google Signup implementation
+                Toast.makeText(context, "Google Sign-Up to be migrated to Supabase", Toast.LENGTH_SHORT).show()
             }
         } catch (e: ApiException) {
             // Handle error
@@ -233,8 +233,8 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                         onClick = { 
                             if (email.isNotBlank() && password.isNotBlank()) {
                                 val userData = mapOf<String, Any>(
-                                    "fullName" to fullName,
-                                    "phoneNumber" to phoneNumber,
+                                    "name" to fullName,
+                                    "phone" to phoneNumber,
                                     "email" to email,
                                     "role" to "customer"
                                 )
@@ -316,7 +316,7 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                         }
                     }
                     OutlinedButton(
-                        onClick = { /* Phone Login */ },
+                        onClick = { authViewModel.resetState() },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
@@ -351,16 +351,6 @@ fun SignUpScreen(navController: NavController, role: String = "customer", authVi
                     }
                     .padding(bottom = 32.dp)
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Rounded.Security, null, modifier = Modifier.size(12.dp), tint = ElegantTeal.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Your data is encrypted and secure", fontSize = 11.sp, color = TextGrey.copy(alpha = 0.7f))
-            }
         }
     }
 }

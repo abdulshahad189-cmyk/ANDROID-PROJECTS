@@ -36,7 +36,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.R
 import com.nisr.sauservices.data.local.SessionManager
@@ -73,8 +72,8 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
         try {
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { idToken ->
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                authViewModel.signInWithGoogle(credential, role)
+                // TODO: Implement Supabase Google Auth
+                Toast.makeText(context, "Google Sign-In with Supabase to be implemented", Toast.LENGTH_SHORT).show()
             }
         } catch (e: ApiException) {
             // Handle error
@@ -115,10 +114,8 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
             Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                 IconButton(
                     onClick = { 
-                        if (isPhoneLogin && authState !is AuthState.OtpSent) {
+                        if (isPhoneLogin) {
                             isPhoneLogin = false
-                        } else if (authState is AuthState.OtpSent) {
-                            authViewModel.resetState()
                         } else {
                             navController.popBackStack()
                         }
@@ -229,54 +226,18 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                             )
                         )
                     } else {
-                        // Phone Login UI
-                        if (authState is AuthState.OtpSent) {
-                            Text(
-                                text = "Enter the 6-digit code sent to $phoneNumber",
-                                fontSize = 14.sp,
-                                color = TextGrey,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            
-                            OutlinedTextField(
-                                value = otpCode,
-                                onValueChange = { if (it.length <= 6) otpCode = it },
-                                placeholder = { Text("Enter OTP") },
-                                leadingIcon = { Icon(Icons.Rounded.Pin, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                enabled = authState !is AuthState.Loading,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = ElegantTeal,
-                                    unfocusedBorderColor = Color(0xFFF0F0F0)
-                                )
-                            )
-                        } else {
-                            OutlinedTextField(
-                                value = phoneNumber,
-                                onValueChange = { if (it.length <= 15) phoneNumber = it },
-                                placeholder = { Text("Phone Number (10 digits)") },
-                                leadingIcon = { 
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(start = 12.dp, end = 8.dp)
-                                    ) {
-                                        Icon(Icons.Rounded.Phone, contentDescription = null, modifier = Modifier.size(20.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("+91", fontWeight = FontWeight.Bold, color = TextDark)
-                                    }
-                                },
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                                enabled = authState !is AuthState.Loading,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = ElegantTeal,
-                                    unfocusedBorderColor = Color(0xFFF0F0F0)
-                                )
-                            )
-                        }
+                        // Phone Login UI Placeholder
+                        Text("Phone OTP login is handled via Supabase Auth", modifier = Modifier.padding(vertical = 8.dp))
+                        OutlinedTextField(
+                            value = phoneNumber,
+                            onValueChange = { phoneNumber = it },
+                            placeholder = { Text("Phone Number") },
+                            leadingIcon = { Icon(Icons.Rounded.Phone, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            enabled = authState !is AuthState.Loading
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -311,38 +272,12 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
 
                     Button(
                         onClick = { 
-                            if (isPhoneLogin) {
-                                val state = authState
-                                if (state is AuthState.OtpSent) {
-                                    if (otpCode.length == 6) {
-                                        authViewModel.verifyOtp(state.verificationId, otpCode, role)
-                                    } else {
-                                        Toast.makeText(context, "Please enter 6-digit OTP", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    if (phoneNumber.isNotBlank()) {
-                                        // Ensure E.164 format for India (+91)
-                                        val formattedNumber = if (phoneNumber.startsWith("+")) {
-                                            phoneNumber
-                                        } else if (phoneNumber.length == 10) {
-                                            "+91$phoneNumber"
-                                        } else {
-                                            phoneNumber // Try as is, but usually should be 10 digits
-                                        }
-                                        
-                                        if (formattedNumber.length >= 12) { // +91 + 10 digits
-                                            authViewModel.sendOtp(formattedNumber, context as Activity, role)
-                                        } else {
-                                            Toast.makeText(context, "Please enter a valid 10-digit number", Toast.LENGTH_SHORT).show()
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "Enter phone number", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            } else {
+                            if (!isPhoneLogin) {
                                 if (email.isNotBlank() && password.isNotBlank()) {
                                     authViewModel.signIn(email, password)
                                 }
+                            } else {
+                                Toast.makeText(context, "Phone login to be migrated to Supabase", Toast.LENGTH_SHORT).show()
                             }
                         },
                         modifier = Modifier
@@ -369,9 +304,7 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                             if (authState is AuthState.Loading) {
                                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                             } else {
-                                val btnText = if (isPhoneLogin) {
-                                    if (authState is AuthState.OtpSent) "Verify OTP" else "Send OTP"
-                                } else "Sign In"
+                                val btnText = if (isPhoneLogin) "Send OTP" else "Sign In"
                                 Text(btnText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -462,16 +395,6 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
                     }
                     .padding(bottom = 24.dp)
             )
-            
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Rounded.Security, null, modifier = Modifier.size(12.dp), tint = ElegantTeal.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Protected by 256-bit encryption", fontSize = 11.sp, color = TextGrey.copy(alpha = 0.7f))
-            }
         }
     }
 }

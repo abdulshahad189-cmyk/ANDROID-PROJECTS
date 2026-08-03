@@ -4,10 +4,11 @@ import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.BookingModel
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class BookingRepository {
@@ -25,8 +26,7 @@ class BookingRepository {
     @OptIn(SupabaseExperimental::class)
     fun getMyBookings(userId: String): Flow<List<BookingModel>> {
         return postgrest["bookings"]
-            .selectAsFlow(BookingModel::id)
-            .map { list -> list.filter { it.user_id == userId } }
+            .selectAsFlow(BookingModel::id, filter = FilterOperation("user_id", FilterOperator.EQ, userId))
     }
 
     suspend fun updateBookingStatus(bookingId: String, status: String): Result<Unit> = try {
@@ -45,4 +45,6 @@ class BookingRepository {
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun cancelBooking(bookingId: String): Result<Unit> = updateBookingStatus(bookingId, "cancelled")
 }

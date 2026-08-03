@@ -1,149 +1,89 @@
 package com.nisr.sauservices.ui.viewmodel
 
-import android.app.Activity
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.FirebaseException
-import com.google.firebase.auth.*
-import com.nisr.sauservices.data.repository.UserRepository
+import com.nisr.sauservices.data.api.SupabaseClient
+import com.nisr.sauservices.data.model.User
+import com.nisr.sauservices.data.repository.SupabaseRepository
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
-class AuthViewModel(private val userRepository: UserRepository = UserRepository()) : ViewModel() {
+class AuthViewModel(private val repository: SupabaseRepository = SupabaseRepository()) : ViewModel() {
 
     private val _authState = mutableStateOf<AuthState>(AuthState.Idle)
     val authState: State<AuthState> = _authState
 
-    val currentUser: FirebaseUser?
-        get() = userRepository.getCurrentUser()
+    private val auth = SupabaseClient.client.auth
+
+    val currentUser: User?
+        get() = auth.currentUserOrNull()?.let { 
+            User(id = it.id, email = it.email ?: "")
+        }
 
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = userRepository.signIn(email, password)
-            _authState.value = result.fold(
-                onSuccess = { user ->
-                    if (user != null) {
-                        val dataResult = userRepository.getUserData(user.uid)
-                        dataResult.fold(
-                            onSuccess = { AuthState.Success(user, it) },
-                            onFailure = { AuthState.Error(it.message ?: "Failed to fetch user data") }
-                        )
-                    } else {
-                        AuthState.Error("User not found")
+            try {
+                auth.signInWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+                val uid = auth.currentUserOrNull()?.id ?: throw Exception("Login failed")
+                
+                repository.getUserProfile(uid).fold(
+                    onSuccess = { user ->
+                        _authState.value = AuthState.Success(user)
+                    },
+                    onFailure = { 
+                        _authState.value = AuthState.Error(it.message ?: "Failed to fetch user profile")
                     }
-                },
-                onFailure = { AuthState.Error(it.message ?: "Login failed") }
-            )
+                )
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Login failed")
+            }
         }
-    }
-
-    fun signInWithGoogle(credential: AuthCredential, role: String) {
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            val result = userRepository.signInWithCredential(credential)
-            _authState.value = result.fold(
-                onSuccess = { user ->
-                    if (user != null) {
-                        handleUserAfterSignIn(user, role)
-                    } else {
-                        AuthState.Error("Google Sign-In failed")
-                    }
-                },
-                onFailure = { AuthState.Error(it.message ?: "Google Sign-In failed") }
-            )
-        }
-    }
-
-    fun sendOtp(phoneNumber: String, activity: Activity, role: String) {
-        _authState.value = AuthState.Loading
-        val options = PhoneAuthOptions.newBuilder(FirebaseAuth.getInstance())
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    signInWithPhoneCredential(credential, role)
-                }
-
-                override fun onVerificationFailed(e: FirebaseException) {
-                    _authState.value = AuthState.Error(e.message ?: "Verification failed: ${e.message}")
-                }
-
-                override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                    _authState.value = AuthState.OtpSent(verificationId)
-                }
-            })
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
-
-    fun verifyOtp(verificationId: String, otp: String, role: String) {
-        val credential = PhoneAuthProvider.getCredential(verificationId, otp)
-        signInWithPhoneCredential(credential, role)
-    }
-
-    private fun signInWithPhoneCredential(credential: PhoneAuthCredential, role: String) {
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            val result = userRepository.signInWithCredential(credential)
-            _authState.value = result.fold(
-                onSuccess = { user ->
-                    if (user != null) {
-                        handleUserAfterSignIn(user, role)
-                    } else {
-                        AuthState.Error("Phone Sign-In failed")
-                    }
-                },
-                onFailure = { AuthState.Error(it.message ?: "Phone Sign-In failed") }
-            )
-        }
-    }
-
-    private suspend fun handleUserAfterSignIn(user: FirebaseUser, role: String): AuthState {
-        val dataResult = userRepository.getUserData(user.uid)
-        val state = dataResult.fold(
-            onSuccess = { existingData ->
-                if (existingData == null) {
-                    val newData = mutableMapOf(
-                        "uid" to user.uid,
-                        "userId" to user.uid,
-                        "fullName" to (user.displayName ?: ""),
-                        "name" to (user.displayName ?: ""),
-                        "email" to (user.email ?: ""),
-                        "role" to role,
-                        "phoneNumber" to (user.phoneNumber ?: ""),
-                        "phone" to (user.phoneNumber ?: ""),
-                        "status" to "APPROVED"
-                    )
-                    userRepository.saveUserData(user.uid, newData)
-                    AuthState.Success(user, newData)
-                } else {
-                    AuthState.Success(user, existingData)
-                }
-            },
-            onFailure = { AuthState.Error(it.message ?: "Failed to fetch user data") }
-        )
-        _authState.value = state
-        return state
     }
 
     fun signUp(email: String, password: String, userData: Map<String, Any>) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            val result = userRepository.signUp(email, password, userData)
-            _authState.value = result.fold(
-                onSuccess = { AuthState.Success(it, userData) },
-                onFailure = { AuthState.Error(it.message ?: "Registration failed") }
-            )
+            try {
+                auth.signUpWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+                val uid = auth.currentUserOrNull()?.id ?: throw Exception("Signup failed")
+                
+                val newUser = User(
+                    id = uid,
+                    name = userData["name"] as? String ?: "",
+                    email = email,
+                    phone = userData["phone"] as? String ?: "",
+                    role = userData["role"] as? String ?: "customer"
+                )
+
+                repository.registerUser(newUser).fold(
+                    onSuccess = {
+                        _authState.value = AuthState.Success(newUser)
+                    },
+                    onFailure = {
+                        _authState.value = AuthState.Error(it.message ?: "Registration failed")
+                    }
+                )
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Registration failed")
+            }
         }
     }
 
     fun logout() {
-        userRepository.logout()
-        _authState.value = AuthState.Idle
+        viewModelScope.launch {
+            auth.signOut()
+            _authState.value = AuthState.Idle
+        }
     }
     
     fun resetState() {
@@ -154,7 +94,6 @@ class AuthViewModel(private val userRepository: UserRepository = UserRepository(
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    data class OtpSent(val verificationId: String) : AuthState()
-    data class Success(val user: FirebaseUser?, val userData: Map<String, Any>? = null) : AuthState()
+    data class Success(val user: User) : AuthState()
     data class Error(val message: String) : AuthState()
 }

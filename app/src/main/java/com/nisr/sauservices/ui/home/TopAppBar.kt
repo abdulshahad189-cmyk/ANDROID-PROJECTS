@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,45 +17,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.viewmodel.CartViewModel
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var userAddress by remember { mutableStateOf("Set Location") }
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
     val cartViewModel: CartViewModel = viewModel()
     val cartItems by cartViewModel.dbCartItems.collectAsState()
     val cartCount = cartItems.sumOf { it.quantity }
-    
-    val databaseUrl = "https://sau-services-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
-    // Real-time listener for address
+    // In a real app, you'd fetch this from Supabase profile or a local flow
+    // For now, we'll try to get it from session manager or a placeholder
     LaunchedEffect(userId) {
-        userId?.let { uid ->
-            val ref = FirebaseDatabase.getInstance(databaseUrl).reference.child("users").child(uid).child("selectedLocation").child("address")
-            ref.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    userAddress = snapshot.getValue(String::class.java) ?: "Set Location"
-                }
-                override fun onCancelled(error: DatabaseError) {}
-            })
-        }
+        // Placeholder for real-time address updates from Supabase if implemented
     }
 
     if (showLogoutDialog) {
@@ -115,7 +102,7 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 Text("SAU", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.Black)
             }
 
-            // Location Pill (Blinkit Style)
+            // Location Pill
             Row(
                 modifier = Modifier
                     .weight(1f)

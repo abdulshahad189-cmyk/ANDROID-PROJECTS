@@ -1,13 +1,16 @@
 package com.nisr.sauservices.data.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Booking(
-    val bookingId: String,
-    val customerName: String,
+    val bookingId: String = "",
+    val customerName: String = "",
     val customerPhone: String = "+91 98765 00001",
-    val serviceType: String,
-    val address: String,
-    val timeSlot: String,
-    var status: String, // placed, accepted, on_the_way, arrived, started, completed
+    val serviceType: String = "",
+    val address: String = "",
+    val timeSlot: String = "",
+    var status: String = "pending", // placed, accepted, on_the_way, arrived, started, completed
     val price: String = "₹799",
     val description: String = "Split AC not cooling properly",
     val otp: String = "6743",
@@ -16,14 +19,4 @@ data class Booking(
     val postWorkPhoto: String? = null,
     val notes: String? = null,
     val rating: Float? = null
-)
-
-data class FirestoreBooking(
-    val bookingId: String = "",
-    val customerName: String = "",
-    val customerPhone: String = "",
-    val serviceType: String? = null,
-    val address: String = "",
-    val status: String = "pending",
-    val price: String = ""
 )

@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.nisr.sauservices.data.local.SessionManager
-import com.nisr.sauservices.data.repository.UserRepository
+import com.nisr.sauservices.data.repository.SupabaseRepository
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.auth.*
 import com.nisr.sauservices.ui.essentials.*
@@ -35,7 +35,7 @@ import com.nisr.sauservices.ui.location.OrderTrackingScreen
 fun AppNavHost(navController: NavHostController) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
-    val userRepository = UserRepository()
+    val supabaseRepository = SupabaseRepository()
     
     // Global ViewModels
     val cartViewModel: CartViewModel = viewModel()
