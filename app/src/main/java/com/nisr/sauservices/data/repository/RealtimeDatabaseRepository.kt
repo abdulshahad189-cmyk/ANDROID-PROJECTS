@@ -2,6 +2,7 @@ package com.nisr.sauservices.data.repository
 
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.OrderModel
+import com.nisr.sauservices.data.model.SupplyOrder
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -30,6 +31,19 @@ class RealtimeDatabaseRepository {
         }
         
         Result.success(inserted.id)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun placeSupplyOrder(order: SupplyOrder): Result<String> = try {
+        val userId = getCurrentUserId() ?: "anonymous"
+        val finalOrder = order.copy(userId = userId)
+        
+        withContext(Dispatchers.IO) {
+            postgrest["supply_orders"].insert(finalOrder)
+        }
+        
+        Result.success("Order Placed")
     } catch (e: Exception) {
         Result.failure(e)
     }

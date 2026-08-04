@@ -20,8 +20,8 @@ class CustomerTrackingViewModel : ViewModel() {
 
     fun trackOrder(orderId: String) {
         viewModelScope.launch {
-            repository.listenToCustomerOrder(orderId).collect { order ->
-                _trackedOrder.value = order
+            repository.listenToCustomerOrder(orderId).collect { orders ->
+                _trackedOrder.value = orders.firstOrNull()
                 // If OrderModel has lat/lng fields in the new schema, update accordingly
             }
         }
