@@ -75,7 +75,15 @@ data class OrderModel(
     @SerialName("delivery_partner_id") val deliveryPartnerId: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("timestamp") val timestamp: Long = System.currentTimeMillis(),
-    @SerialName("customer_location") val customerLocation: LiveLocation = LiveLocation()
+    @SerialName("customer_location") val customerLocation: LiveLocation = LiveLocation(),
+    
+    // Additional fields for Unified Order/Booking view
+    @SerialName("service_name") val serviceName: String = "",
+    @SerialName("category") val category: String = "",
+    @SerialName("subcategory") val subcategory: String = "",
+    @SerialName("scheduled_date") val scheduleDate: String? = null,
+    @SerialName("scheduled_time") val scheduleTime: String? = null,
+    @SerialName("payment_method") val paymentMethod: String = "Cash"
 ) {
     val orderId: String get() = id
     val orderStatus: String get() = status

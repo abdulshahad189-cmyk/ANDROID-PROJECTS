@@ -25,7 +25,7 @@ class BookingViewModel : ViewModel() {
 
     fun observeMyBookings(userId: String) {
         viewModelScope.launch {
-            repository.observeMyBookings("customer", userId).collect {
+            repository.observeMyBookings(userId).collect {
                 _myBookings.value = it
             }
         }

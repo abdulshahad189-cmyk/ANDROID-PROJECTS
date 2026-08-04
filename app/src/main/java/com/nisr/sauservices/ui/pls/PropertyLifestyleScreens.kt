@@ -331,17 +331,17 @@ fun PLSBookingScreen(
                         Toast.makeText(context, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
                     } else {
                         val booking = PLSBooking(
-                            user_id = SupabaseClient.client.auth.currentUserOrNull()?.id ?: "",
-                            user_name = name,
-                            user_phone = phone,
-                            user_address = address,
-                            service_name = service.name,
-                            date = selectedDate,
-                            time_slot = selectedTimeSlot,
-                            total_price = service.price * (duration.toDoubleOrNull() ?: 1.0),
-                            guests_count = guests.toIntOrNull(),
+                            userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: "",
+                            userName = name,
+                            userPhone = phone,
+                            userAddress = address,
+                            serviceName = service.name,
+                            scheduleDate = selectedDate,
+                            timeSlot = selectedTimeSlot,
+                            totalPrice = service.price * (duration.toDoubleOrNull() ?: 1.0),
+                            guestsCount = guests.toIntOrNull(),
                             duration = duration.toIntOrNull(),
-                            area_sqft = area.toDoubleOrNull(),
+                            areaSqft = area.toDoubleOrNull(),
                             requirements = notes
                         )
                         viewModel.setCurrentBooking(booking)
@@ -423,7 +423,7 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                 Button(
                     onClick = { 
                         if (paymentMethod.isNotEmpty()) {
-                            viewModel.placeBooking(b.copy(payment_method = paymentMethod))
+                            viewModel.placeBooking(b.copy(paymentMethod = paymentMethod))
                         } else {
                             Toast.makeText(context, "Please select a payment method", Toast.LENGTH_SHORT).show()
                         }
@@ -445,8 +445,8 @@ fun PLSCheckoutScreen(navController: NavController, viewModel: PropertyLifestyle
                 popUpTo(Routes.PLS_MAIN) { inclusive = false }
             }
             viewModel.resetBookingResult()
-        } else if (result?.isSuccess == false) {
-            Toast.makeText(context, "Booking Failed: ${result?.message}", Toast.LENGTH_SHORT).show()
+        } else if (result?.isFailure == true) {
+            Toast.makeText(context, "Booking Failed: ${result?.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
             viewModel.resetBookingResult()
         }
     }

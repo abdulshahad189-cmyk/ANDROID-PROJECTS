@@ -99,7 +99,7 @@ class AuthViewModel(private val repository: SupabaseRepository = SupabaseReposit
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                auth.verifyOtp(
+                auth.verifyPhoneOtp(
                     type = OtpType.Phone.SMS,
                     phone = phoneNumber,
                     token = token
@@ -144,7 +144,7 @@ class AuthViewModel(private val repository: SupabaseRepository = SupabaseReposit
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                auth.verifyOtp(
+                auth.verifyEmailOtp(
                     type = OtpType.Email.RECOVERY,
                     email = email,
                     token = token
@@ -161,7 +161,9 @@ class AuthViewModel(private val repository: SupabaseRepository = SupabaseReposit
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                auth.modifyUser(password = newPassword)
+                auth.updateUser {
+                    password = newPassword
+                }
                 _authState.value = AuthState.Idle
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Failed to update password")

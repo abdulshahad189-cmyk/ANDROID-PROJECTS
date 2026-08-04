@@ -48,11 +48,11 @@ class BookingsViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             val booking = BookingModel(
-                user_id = repository.getCurrentUserId() ?: "",
-                service_id = serviceId,
-                service_name = serviceName,
-                scheduled_date = date,
-                scheduled_time = time,
+                userId = repository.getCurrentUserId() ?: "",
+                serviceId = serviceId,
+                serviceName = serviceName,
+                scheduleDate = date,
+                scheduleTime = time,
                 address = address,
                 status = "pending"
             )
@@ -74,9 +74,9 @@ class BookingsViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             val order = OrderModel(
-                user_id = repository.getCurrentUserId() ?: "",
+                userId = repository.getCurrentUserId() ?: "",
                 items = items,
-                total_amount = amount,
+                totalAmount = amount,
                 address = address,
                 status = "pending"
             )
@@ -88,15 +88,15 @@ class BookingsViewModel : ViewModel() {
     fun loadUserBookings() {
         val userId = repository.getCurrentUserId() ?: return
         viewModelScope.launch {
-            repository.observeMyBookings("customer", userId).collect { list ->
+            repository.observeMyBookings(userId).collect { list ->
                 _myBookings.value = list
                 _bookingsFlow.value = list.map {
                     BookingItem(
                         id = it.id,
-                        serviceName = it.service_name,
+                        serviceName = it.serviceName,
                         price = "₹0.0",
-                        date = it.scheduled_date,
-                        time = it.scheduled_time,
+                        date = it.scheduleDate,
+                        time = it.scheduleTime,
                         status = it.status
                     )
                 }

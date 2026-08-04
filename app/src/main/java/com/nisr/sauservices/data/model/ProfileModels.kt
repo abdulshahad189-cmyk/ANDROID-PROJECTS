@@ -29,8 +29,8 @@ data class Address(
 
 @Serializable
 data class NotificationPreferences(
-    val order_updates: Boolean = true,
+    @SerialName("order_updates") val orderUpdates: Boolean = true,
     val promotions: Boolean = true,
-    val service_alerts: Boolean = true,
-    val app_updates: Boolean = true
+    @SerialName("service_alerts") val serviceAlerts: Boolean = true,
+    @SerialName("app_updates") val appUpdates: Boolean = true
 )

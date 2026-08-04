@@ -40,7 +40,7 @@ class NewBookingsViewModel : ViewModel() {
                 subcategory = subcategory,
                 scheduleDate = date,
                 scheduleTime = time,
-                amount = priceDouble * quantity,
+                totalAmount = priceDouble * quantity,
                 paymentMethod = paymentMethod,
                 address = address,
                 status = "success",

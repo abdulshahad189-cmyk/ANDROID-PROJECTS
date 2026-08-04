@@ -86,7 +86,6 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel = vi
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             sessionManager.saveLoginState(true)
-            sessionManager.saveUserRole("customer")
             
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }

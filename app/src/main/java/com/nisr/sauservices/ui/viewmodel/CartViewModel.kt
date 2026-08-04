@@ -113,9 +113,9 @@ class CartViewModel : ViewModel() {
 
             val total = items.sumOf { it.totalPrice }
             val order = OrderModel(
-                user_id = repository.getCurrentUserId() ?: "",
+                userId = repository.getCurrentUserId() ?: "",
                 items = items,
-                total_amount = total,
+                totalAmount = total,
                 address = address,
                 status = "placed"
             )

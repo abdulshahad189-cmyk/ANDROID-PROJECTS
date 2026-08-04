@@ -30,7 +30,7 @@ class CustomerViewModel : ViewModel() {
 
     private fun observeData() {
         viewModelScope.launch {
-            repository.observeMyBookings("customer", userId).collect {
+            repository.observeMyBookings(userId).collect {
                 _myBookings.value = it
             }
         }
