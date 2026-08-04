@@ -64,7 +64,7 @@ class AuthViewModel(private val repository: SupabaseRepository = SupabaseReposit
                     name = userData["name"] as? String ?: "",
                     email = email,
                     phone = userData["phone"] as? String ?: "",
-                    role = userData["role"] as? String ?: "customer"
+                    role = "customer"
                 )
 
                 repository.registerUser(newUser).fold(

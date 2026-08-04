@@ -8,8 +8,6 @@ class SessionManager(context: Context) {
 
     companion object {
         const val KEY_LOGIN_STATE = "login_state"
-        const val KEY_USER_ROLE = "user_role"
-        const val KEY_WORKER_TYPE = "worker_type"
         const val KEY_LAT = "latitude"
         const val KEY_LNG = "longitude"
         const val KEY_ADDRESS = "address"
@@ -20,18 +18,6 @@ class SessionManager(context: Context) {
     }
 
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_LOGIN_STATE, false)
-
-    fun saveUserRole(role: String) {
-        prefs.edit().putString(KEY_USER_ROLE, role).apply()
-    }
-
-    fun getUserRole(): String? = prefs.getString(KEY_USER_ROLE, null)
-
-    fun saveWorkerType(type: String) {
-        prefs.edit().putString(KEY_WORKER_TYPE, type).apply()
-    }
-
-    fun getWorkerType(): String? = prefs.getString(KEY_WORKER_TYPE, null)
 
     fun saveLocation(lat: Double, lng: Double, address: String) {
         prefs.edit().apply {

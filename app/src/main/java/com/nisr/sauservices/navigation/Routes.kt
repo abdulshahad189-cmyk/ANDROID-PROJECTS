@@ -5,8 +5,6 @@ object Routes {
     const val ONBOARDING = "onboarding"
     const val LOGIN = "login"
     const val SIGNUP = "signup"
-    const val REGISTER = "register"
-    const val REGISTER_CUSTOMER = "register_customer"
     const val FORGOT_PASSWORD = "forgot_password"
 
     // Main Core
@@ -23,7 +21,6 @@ object Routes {
     const val NOTIFICATIONS = "profile/notifications"
     const val SHIPPING_ADDRESS = "profile/address"
     const val CHANGE_PASSWORD = "profile/change-password"
-    const val ADD_ACCOUNTS = "profile/add-accounts"
     const val CONTACT_US = "profile/contact"
     const val FAQ = "profile/faq"
 

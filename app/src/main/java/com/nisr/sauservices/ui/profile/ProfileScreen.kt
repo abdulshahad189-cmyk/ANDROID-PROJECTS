@@ -91,27 +91,6 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
             }
             item {
                 ProfileMenuItem(
-                    icon = Icons.Outlined.PersonAdd,
-                    label = "Add Accounts",
-                    onClick = { navController.navigate(Screen.AddAccounts.route) }
-                )
-            }
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Outlined.ChatBubbleOutline,
-                    label = "Contact Us",
-                    onClick = { navController.navigate(Screen.ContactUs.route) }
-                )
-            }
-            item {
-                ProfileMenuItem(
-                    icon = Icons.Outlined.HelpOutline,
-                    label = "FAQ",
-                    onClick = { navController.navigate(Screen.FAQ.route) }
-                )
-            }
-            item {
-                ProfileMenuItem(
                     icon = Icons.Outlined.Logout,
                     label = "Logout",
                     labelColor = Color.Red,
@@ -132,7 +111,7 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
                 TextButton(onClick = {
                     viewModel.logout()
                     showLogoutDialog = false
-                    navController.navigate(Screen.RoleSelection.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(0)
                     }
                 }) {
