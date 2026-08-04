@@ -51,11 +51,10 @@ private val TextDark = Color(0xFF1A1C1E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignInScreen(navController: NavController, role: String = "customer", authViewModel: AuthViewModel = viewModel()) {
+fun SignInScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    var otpCode by remember { mutableStateOf("") }
     var isPhoneLogin by remember { mutableStateOf(false) }
     
     var passwordVisible by remember { mutableStateOf(false) }
@@ -87,7 +86,7 @@ fun SignInScreen(navController: NavController, role: String = "customer", authVi
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             sessionManager.saveLoginState(true)
-            sessionManager.saveUserRole(role)
+            sessionManager.saveUserRole("customer")
             
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }

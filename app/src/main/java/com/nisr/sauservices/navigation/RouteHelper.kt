@@ -3,9 +3,6 @@ package com.nisr.sauservices.navigation
 import java.net.URLEncoder
 
 object RouteHelper {
-    fun authOptions(role: String) = "auth_options/$role"
-    fun login(role: String) = "login/$role"
-    fun signup(role: String) = "signup/$role"
     fun searchResults(query: String) = "search_results/${URLEncoder.encode(query, "UTF-8")}"
 
     // Home Essentials

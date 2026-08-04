@@ -52,7 +52,7 @@ private val TextDark = Color(0xFF1A1C1E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController, role: String = "customer", authViewModel: AuthViewModel = viewModel()) {
+fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }

@@ -4,10 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -25,29 +22,13 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.auth.SelectionActivity" />
-        <activity android:name=".ui.auth.AuthOptionsActivity" />
-        <activity android:name=".ui.auth.LoginActivity" />
-        <activity android:name=".ui.auth.ShopkeeperRegisterActivity" />
-        <activity android:name=".ui.auth.ServiceWorkerRegisterActivity" />
-        <activity android:name=".ui.auth.DeliveryPartnerRegisterActivity" />
-        <activity android:name=".ui.dashboard.ShopkeeperDashboardActivity" />
-        <activity android:name=".ui.dashboard.ServiceWorkerDashboardActivity" />
-        <activity android:name=".ui.dashboard.DeliveryDashboardActivity" />
-        <activity android:name=".ui.location.MapActivity" />
-
-        <!-- Location Service for Delivery Tracking -->
-        <service
-            android:name=".location.LocationService"
-            android:foregroundServiceType="location"
-            android:exported="false" />
 
     </application>
 

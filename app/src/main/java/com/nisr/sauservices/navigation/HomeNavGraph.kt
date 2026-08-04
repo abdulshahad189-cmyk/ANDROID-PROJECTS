@@ -23,12 +23,11 @@ fun NavGraphBuilder.homeNavGraph(
     residentialViewModel: ResidentialViewModel
 ) {
     composable(Routes.HOME) {
-        // App is now customer only, but we check if logged in
         if (sessionManager.isLoggedIn()) {
             CustomerHomeScreen(navController, sessionManager)
         } else {
             LaunchedEffect(Unit) {
-                navController.navigate(RouteHelper.login("customer")) {
+                navController.navigate(Routes.LOGIN) {
                     popUpTo(Routes.HOME) { inclusive = true }
                 }
             }
@@ -47,8 +46,6 @@ fun NavGraphBuilder.homeNavGraph(
         SearchResultsScreen(navController, query, residentialViewModel)
     }
     
-    // Partner Dashboards removed as the app is now customer-only
-
     // Property & Lifestyle Services (PLS)
     composable(Routes.PLS_MAIN) { PLSMainScreen(navController) }
     
@@ -68,7 +65,6 @@ fun NavGraphBuilder.homeNavGraph(
         PLSServicesScreen(navController, subcategory, viewModel())
     }
 
-    // Shared ViewModel for PLS booking flow
     composable(
         route = Routes.PLS_BOOKING,
         arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
@@ -96,6 +92,4 @@ fun NavGraphBuilder.homeNavGraph(
         val plsViewModel: PropertyLifestyleViewModel = viewModel(parentEntry)
         PLSSuccessScreen(navController, plsViewModel)
     }
-
-    // Admin Panel and Worker Side removed as the app is now customer-only
 }

@@ -97,7 +97,7 @@ fun OnboardingScreen(navController: NavController) {
                 ) {
                     TextButton(
                         onClick = { 
-                            navController.navigate(Screen.Login.createRoute("customer")) {
+                            navController.navigate(Screen.Login.route) {
                                 popUpTo(Screen.Onboarding.route) { inclusive = true }
                             }
                         }
@@ -216,7 +216,7 @@ fun OnboardingScreen(navController: NavController) {
                                     pagerState.animateScrollToPage(pagerState.currentPage + 1)
                                 }
                             } else {
-                                navController.navigate(Screen.Login.createRoute("customer")) {
+                                navController.navigate(Screen.Login.route) {
                                     popUpTo(Screen.Onboarding.route) { inclusive = true }
                                 }
                             }

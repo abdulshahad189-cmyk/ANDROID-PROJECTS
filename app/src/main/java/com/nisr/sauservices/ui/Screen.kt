@@ -40,30 +40,13 @@ sealed class Screen(val route: String) {
     object HomeEssentialsCheckout : Screen("home_checkout")
     object HomeEssentialsSuccess : Screen("home_success")
 
-    object Login : Screen("login/{role}") {
-        fun createRoute(role: String) = "login/$role"
-    }
+    object Login : Screen("login")
     object PhoneLogin : Screen("phone_login")
-    object Register : Screen("register")
     object BookingSummary : Screen("booking_summary")
     object BookingSuccess : Screen("service_booking_success")
     
-    // Dashboards
-    object RoleSelection : Screen("role_selection")
-    object AuthOptions : Screen("auth_options/{role}") {
-        fun createRoute(role: String) = "auth_options/$role"
-    }
-    object ShopkeeperRegister : Screen("shopkeeper_register")
-    object ServiceWorkerRegister : Screen("service_worker_register")
-    object DeliveryPartnerRegister : Screen("delivery_partner_register")
-    object ShopkeeperDashboard : Screen("shopkeeper_dashboard")
-    object ServiceWorkerDashboard : Screen("service_worker_dashboard")
-    object DeliveryDashboard : Screen("delivery_dashboard")
-    object AdminDashboard : Screen("admin_dashboard")
     object ForgotPassword : Screen("forgot_password")
-    object SignUp : Screen("signup/{role}") {
-        fun createRoute(role: String) = "signup/$role"
-    }
+    object SignUp : Screen("signup")
 
     // Food & Beverages
     object FoodCategories : Screen("FOODS_categories")

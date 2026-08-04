@@ -131,14 +131,6 @@ class SupabaseRepository {
         return postgrest["bookings"].selectAsFlow(BookingModel::id, filter = filter)
     }
 
-    @OptIn(SupabaseExperimental::class)
-    fun listenToAllBookings(): Flow<List<BookingModel>> = listenToBookings()
-
-    @OptIn(SupabaseExperimental::class)
-    fun listenToWorkerBookings(workerId: String): Flow<List<BookingModel>> {
-        return postgrest["bookings"].selectAsFlow(BookingModel::id, filter = FilterOperation("provider_id", FilterOperator.EQ, workerId))
-    }
-    
     suspend fun bookService(booking: BookingModel): Result<String> = withContext(Dispatchers.IO) {
         try {
             val inserted = postgrest["bookings"].insert(booking) {
@@ -151,9 +143,8 @@ class SupabaseRepository {
     }
     
     @OptIn(SupabaseExperimental::class)
-    fun observeMyBookings(role: String, userId: String): Flow<List<BookingModel>> {
-        val col = if (role == "customer") "user_id" else "provider_id"
-        return postgrest["bookings"].selectAsFlow(BookingModel::id, filter = FilterOperation(col, FilterOperator.EQ, userId))
+    fun observeMyBookings(userId: String): Flow<List<BookingModel>> {
+        return postgrest["bookings"].selectAsFlow(BookingModel::id, filter = FilterOperation("user_id", FilterOperator.EQ, userId))
     }
 
     // --- ORDERS ---
@@ -165,24 +156,13 @@ class SupabaseRepository {
     }
 
     @OptIn(SupabaseExperimental::class)
-    fun listenToAllOrders(): Flow<List<OrderModel>> = listenToOrders()
-
-    @OptIn(SupabaseExperimental::class)
     fun listenToCustomerOrders(userId: String): Flow<List<OrderModel>> = listenToOrders(userId)
-
-    @OptIn(SupabaseExperimental::class)
-    fun listenToDeliveryBoyOrders(deliveryBoyId: String): Flow<List<OrderModel>> {
-        return postgrest["orders"].selectAsFlow(OrderModel::id, filter = FilterOperation("delivery_partner_id", FilterOperator.EQ, deliveryBoyId))
-    }
 
     @OptIn(SupabaseExperimental::class)
     fun listenToCustomerOrder(orderId: String): Flow<List<OrderModel>> {
         return postgrest["orders"].selectAsFlow(OrderModel::id, filter = FilterOperation("id", FilterOperator.EQ, orderId))
     }
 
-    @OptIn(SupabaseExperimental::class)
-    fun listenToShopkeeperOrders(): Flow<List<OrderModel>> = listenToOrders()
-    
     suspend fun placeOrder(order: OrderModel): Result<String> = withContext(Dispatchers.IO) {
         try {
             val inserted = postgrest["orders"].insert(order) {
@@ -193,37 +173,6 @@ class SupabaseRepository {
             Result.failure(e)
         }
     }
-
-    suspend fun updateOrderStatus(orderId: String, status: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            postgrest["orders"].update({
-                set("status", status)
-            }) {
-                filter { eq("id", orderId) }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
-    suspend fun updateBookingStatus(bookingId: String, status: String, workerId: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            postgrest["bookings"].update({
-                set("status", status)
-                if (workerId != null) set("provider_id", workerId)
-            }) {
-                filter { eq("id", bookingId) }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getPendingOrders(shopId: String): List<OrderModel> = emptyList() // TODO
-    suspend fun getAcceptedOrders(shopId: String): List<OrderModel> = emptyList() // TODO
-    suspend fun getAssignedOrdersForShop(shopId: String): List<OrderModel> = emptyList() // TODO
 
     // --- PAYMENTS ---
 
@@ -252,27 +201,5 @@ class SupabaseRepository {
     @OptIn(SupabaseExperimental::class)
     fun getNotifications(userId: String): Flow<List<Notification>> {
         return postgrest["notifications"].selectAsFlow(Notification::id, filter = FilterOperation("user_id", FilterOperator.EQ, userId))
-    }
-    
-    // --- DASHBOARD DATA ---
-    
-    suspend fun getDeliveryBoys(): List<User> = withContext(Dispatchers.IO) {
-        try {
-            postgrest["users"].select {
-                filter { eq("role", "delivery_partner") }
-            }.decodeList<User>()
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    @OptIn(SupabaseExperimental::class)
-    fun listenToAllUsers(): Flow<List<User>> {
-        return postgrest["users"].selectAsFlow(User::id)
-    }
-    
-    @OptIn(SupabaseExperimental::class)
-    fun listenToDeliveryLocations(): Flow<List<LiveLocation>> {
-        return postgrest["locations"].selectAsFlow(LiveLocation::timestamp)
     }
 }
