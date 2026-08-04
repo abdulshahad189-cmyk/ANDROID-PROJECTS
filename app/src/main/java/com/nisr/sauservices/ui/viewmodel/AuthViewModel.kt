@@ -7,8 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.User
 import com.nisr.sauservices.data.repository.SupabaseRepository
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.OTP
 import kotlinx.coroutines.launch
 
 class AuthViewModel(private val repository: SupabaseRepository = SupabaseRepository()) : ViewModel() {
@@ -75,6 +77,94 @@ class AuthViewModel(private val repository: SupabaseRepository = SupabaseReposit
                 )
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Registration failed")
+            }
+        }
+    }
+
+    fun sendOtp(phoneNumber: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                auth.signInWith(OTP) {
+                    phone = phoneNumber
+                }
+                _authState.value = AuthState.Idle
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Failed to send OTP")
+            }
+        }
+    }
+
+    fun verifyOtp(phoneNumber: String, token: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                auth.verifyOtp(
+                    type = OtpType.Phone.SMS,
+                    phone = phoneNumber,
+                    token = token
+                )
+                val uid = auth.currentUserOrNull()?.id ?: throw Exception("Verification failed")
+                
+                repository.getUserProfile(uid).fold(
+                    onSuccess = { user ->
+                        _authState.value = AuthState.Success(user)
+                    },
+                    onFailure = { 
+                        val newUser = User(
+                            id = uid,
+                            phone = phoneNumber,
+                            role = "customer"
+                        )
+                        repository.registerUser(newUser).fold(
+                            onSuccess = { _authState.value = AuthState.Success(newUser) },
+                            onFailure = { _authState.value = AuthState.Error(it.message ?: "Failed to create user profile") }
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Verification failed")
+            }
+        }
+    }
+
+    fun sendPasswordReset(email: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                auth.resetPasswordForEmail(email)
+                _authState.value = AuthState.Idle
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Failed to send reset email")
+            }
+        }
+    }
+
+    fun verifyPasswordResetOtp(email: String, token: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                auth.verifyOtp(
+                    type = OtpType.Email.RECOVERY,
+                    email = email,
+                    token = token
+                )
+                // After verification, the user is logged in with a temporary session
+                _authState.value = AuthState.Idle 
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Invalid reset code")
+            }
+        }
+    }
+
+    fun updatePassword(newPassword: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                auth.modifyUser(password = newPassword)
+                _authState.value = AuthState.Idle
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Failed to update password")
             }
         }
     }

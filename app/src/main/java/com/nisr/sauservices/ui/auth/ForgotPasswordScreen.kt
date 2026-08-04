@@ -1,6 +1,7 @@
 
 package com.nisr.sauservices.ui.auth
 
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,13 +21,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.nisr.sauservices.ui.viewmodel.AuthState
+import com.nisr.sauservices.ui.viewmodel.AuthViewModel
 
 // Color Palette
 private val ElegantTeal = Color(0xFF0FA3A3)
@@ -37,9 +42,21 @@ private val TextDark = Color(0xFF1A1C1E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(navController: NavController) {
+fun ForgotPasswordScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     var step by remember { mutableIntStateOf(1) }
+    var email by remember { mutableStateOf("") }
+    var otpCode by remember { mutableStateOf("") }
     
+    val context = LocalContext.current
+    val authState by authViewModel.authState
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Error) {
+            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+            authViewModel.resetState()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -54,7 +71,6 @@ fun ForgotPasswordScreen(navController: NavController) {
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            // Updated Header with Back Button and Centered Step Indicator
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,7 +83,12 @@ fun ForgotPasswordScreen(navController: NavController) {
                 ) {
                     IconButton(
                         onClick = { 
-                            if (step > 1) step-- else navController.popBackStack() 
+                            if (step > 1) {
+                                step--
+                                authViewModel.resetState()
+                            } else {
+                                navController.popBackStack()
+                            }
                         }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.size(20.dp))
@@ -77,11 +98,17 @@ fun ForgotPasswordScreen(navController: NavController) {
                         "Back", 
                         fontSize = 14.sp, 
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { if (step > 1) step-- else navController.popBackStack() }
+                        modifier = Modifier.clickable { 
+                            if (step > 1) {
+                                step--
+                                authViewModel.resetState()
+                            } else {
+                                navController.popBackStack()
+                            }
+                        }
                     )
                 }
 
-                // Step Indicator (1->2->3) - Centered in the header
                 Row(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -105,9 +132,34 @@ fun ForgotPasswordScreen(navController: NavController) {
 
                 Crossfade(targetState = step, label = "stepTransition") { currentStep ->
                     when (currentStep) {
-                        1 -> StepEmailEntry(onContinue = { step = 2 })
-                        2 -> StepOtpVerification(onContinue = { step = 3 })
-                        3 -> StepResetPassword(onContinue = { navController.popBackStack() })
+                        1 -> StepEmailEntry(
+                            email = email,
+                            onEmailChange = { email = it },
+                            isLoading = authState is AuthState.Loading,
+                            onContinue = { 
+                                authViewModel.sendPasswordReset(email)
+                                step = 2 
+                            }
+                        )
+                        2 -> StepOtpVerification(
+                            email = email,
+                            otpCode = otpCode,
+                            onOtpChange = { otpCode = it },
+                            isLoading = authState is AuthState.Loading,
+                            onContinue = { 
+                                authViewModel.verifyPasswordResetOtp(email, otpCode)
+                                step = 3
+                            },
+                            onResend = { authViewModel.sendPasswordReset(email) }
+                        )
+                        3 -> StepResetPassword(
+                            isLoading = authState is AuthState.Loading,
+                            onContinue = { newPassword ->
+                                authViewModel.updatePassword(newPassword)
+                                Toast.makeText(context, "Password updated successfully", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            }
+                        )
                     }
                 }
                 
@@ -151,9 +203,12 @@ fun ForgotPasswordStep(number: Int, isActive: Boolean, isCompleted: Boolean) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepEmailEntry(onContinue: () -> Unit) {
-    var email by remember { mutableStateOf("") }
-    
+fun StepEmailEntry(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    isLoading: Boolean,
+    onContinue: () -> Unit
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -186,11 +241,12 @@ fun StepEmailEntry(onContinue: () -> Unit) {
             Column(modifier = Modifier.padding(16.dp)) {
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
-                    placeholder = { Text("Email or Phone") },
+                    onValueChange = onEmailChange,
+                    placeholder = { Text("Email Address") },
                     leadingIcon = { Icon(Icons.Rounded.AlternateEmail, null, modifier = Modifier.size(20.dp)) },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ElegantTeal,
                         unfocusedBorderColor = Color(0xFFF0F0F0),
@@ -204,6 +260,7 @@ fun StepEmailEntry(onContinue: () -> Unit) {
 
                 Button(
                     onClick = onContinue,
+                    enabled = email.isNotBlank() && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -215,10 +272,19 @@ fun StepEmailEntry(onContinue: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))),
+                            .background(
+                                if (email.isNotBlank() && !isLoading) 
+                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
+                                else
+                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Send Verification Code", fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Send Verification Code", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
                 }
             }
@@ -227,7 +293,14 @@ fun StepEmailEntry(onContinue: () -> Unit) {
 }
 
 @Composable
-fun StepOtpVerification(onContinue: () -> Unit) {
+fun StepOtpVerification(
+    email: String,
+    otpCode: String,
+    onOtpChange: (String) -> Unit,
+    isLoading: Boolean,
+    onContinue: () -> Unit,
+    onResend: () -> Unit
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -242,7 +315,7 @@ fun StepOtpVerification(onContinue: () -> Unit) {
         
         Text("Enter Code", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextDark)
         Text(
-            "We sent a 6-digit code to\ndanturinaksh772@gmail.com",
+            "We sent a 6-digit code to\n$email",
             fontSize = 15.sp,
             color = TextGrey,
             textAlign = TextAlign.Center,
@@ -258,22 +331,22 @@ fun StepOtpVerification(onContinue: () -> Unit) {
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    repeat(6) {
-                        OtpBox(
-                            modifier = Modifier.weight(1f),
-                            isSelected = false
-                        )
-                    }
-                }
+                OutlinedTextField(
+                    value = otpCode,
+                    onValueChange = { if (it.length <= 6) onOtpChange(it) },
+                    placeholder = { Text("6-Digit Code") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isLoading,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = onContinue,
+                    enabled = otpCode.length == 6 && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -285,10 +358,19 @@ fun StepOtpVerification(onContinue: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))),
+                            .background(
+                                if (otpCode.length == 6 && !isLoading)
+                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
+                                else
+                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Verify Code", fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Verify Code", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
                 }
                 
@@ -300,32 +382,19 @@ fun StepOtpVerification(onContinue: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().clickable { /* Resend */ }
+                    modifier = Modifier.fillMaxWidth().clickable { onResend() }
                 )
             }
         }
     }
 }
 
-@Composable
-fun OtpBox(modifier: Modifier, isSelected: Boolean) {
-    Box(
-        modifier = modifier
-            .aspectRatio(0.8f)
-            .border(
-                1.dp, 
-                if (isSelected) ElegantTeal else Color(0xFFF0F0F0), 
-                RoundedCornerShape(12.dp)
-            )
-            .background(Color.White, RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepResetPassword(onContinue: () -> Unit) {
+fun StepResetPassword(
+    isLoading: Boolean,
+    onContinue: (String) -> Unit
+) {
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     
@@ -364,10 +433,10 @@ fun StepResetPassword(onContinue: () -> Unit) {
                     onValueChange = { newPassword = it },
                     placeholder = { Text("New Password") },
                     leadingIcon = { Icon(Icons.Rounded.Lock, null, modifier = Modifier.size(20.dp)) },
-                    trailingIcon = { Icon(Icons.Rounded.Visibility, null, modifier = Modifier.size(20.dp)) },
                     visualTransformation = PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ElegantTeal,
                         unfocusedBorderColor = Color(0xFFF0F0F0),
@@ -383,10 +452,10 @@ fun StepResetPassword(onContinue: () -> Unit) {
                     onValueChange = { confirmPassword = it },
                     placeholder = { Text("Confirm Password") },
                     leadingIcon = { Icon(Icons.Rounded.Lock, null, modifier = Modifier.size(20.dp)) },
-                    trailingIcon = { Icon(Icons.Rounded.Visibility, null, modifier = Modifier.size(20.dp)) },
                     visualTransformation = PasswordVisualTransformation(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ElegantTeal,
                         unfocusedBorderColor = Color(0xFFF0F0F0),
@@ -398,7 +467,8 @@ fun StepResetPassword(onContinue: () -> Unit) {
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = onContinue,
+                    onClick = { if (newPassword == confirmPassword) onContinue(newPassword) },
+                    enabled = newPassword.length >= 6 && newPassword == confirmPassword && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -410,10 +480,19 @@ fun StepResetPassword(onContinue: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))),
+                            .background(
+                                if (newPassword.length >= 6 && newPassword == confirmPassword && !isLoading)
+                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
+                                else
+                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Reset Password", fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Reset Password", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
                 }
             }

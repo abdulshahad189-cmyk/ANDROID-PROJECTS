@@ -7,7 +7,8 @@ import com.google.android.gms.maps.model.Marker
 import com.nisr.sauservices.data.api.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.filter.eq
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,10 @@ class LiveTrackingManager(
         val table = if (isWorker) "worker_locations" else "delivery_locations"
         
         scope.launch {
-            postgrest[table].selectAsFlow(LocationSnapshot::user_id, filter = eq("user_id", id))
+            postgrest[table].selectAsFlow(
+                LocationSnapshot::user_id, 
+                filter = FilterOperation("user_id", FilterOperator.EQ, id)
+            )
                 .collectLatest { list ->
                     val snapshot = list.firstOrNull() ?: return@collectLatest
                     val newPos = LatLng(snapshot.latitude, snapshot.longitude)
