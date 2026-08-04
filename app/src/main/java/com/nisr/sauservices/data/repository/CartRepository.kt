@@ -7,11 +7,9 @@ import com.nisr.sauservices.data.model.OrderModel
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.filter.eq
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -41,9 +39,11 @@ class CartRepository {
                     }
                 }
             } else {
-                postgrest["cart_items"].update({
-                    set("quantity", newQuantity)
-                }) {
+                postgrest["cart_items"].update(
+                    update = {
+                        set("quantity", newQuantity)
+                    }
+                ) {
                     filter {
                         eq("id", itemId)
                     }
@@ -58,9 +58,10 @@ class CartRepository {
     @OptIn(SupabaseExperimental::class)
     fun getCartItems(): Flow<List<CartModel>> {
         return postgrest["cart_items"]
-            .selectAsFlow(CartModel::itemId).map { list ->
+            .selectAsFlow(CartModel::itemId)
+            .map { list: List<CartModel> ->
                 list.filter { it.itemId.isNotEmpty() }
-            }.flowOn(Dispatchers.IO)
+            }
     }
 
     suspend fun removeItem(itemId: String) {
@@ -71,7 +72,7 @@ class CartRepository {
                         eq("id", itemId)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // handle error
             }
         }
@@ -125,10 +126,12 @@ class CartRepository {
 
     suspend fun updateOrderStatus(orderId: String, newStatus: String, staffId: String? = null): Result<Unit> = try {
         withContext(Dispatchers.IO) {
-            postgrest["orders"].update({
-                set("status", newStatus)
-                if (staffId != null) set("delivery_partner_id", staffId)
-            }) {
+            postgrest["orders"].update(
+                update = {
+                    set("status", newStatus)
+                    if (staffId != null) set("delivery_partner_id", staffId)
+                }
+            ) {
                 filter {
                     eq("id", orderId)
                 }
@@ -141,10 +144,12 @@ class CartRepository {
 
     suspend fun updateBookingStatus(bookingId: String, newStatus: String, workerId: String? = null): Result<Unit> = try {
         withContext(Dispatchers.IO) {
-            postgrest["bookings"].update({
-                set("status", newStatus)
-                if (workerId != null) set("provider_id", workerId)
-            }) {
+            postgrest["bookings"].update(
+                update = {
+                    set("status", newStatus)
+                    if (workerId != null) set("provider_id", workerId)
+                }
+            ) {
                 filter {
                     eq("id", bookingId)
                 }
@@ -159,13 +164,11 @@ class CartRepository {
     fun getGlobalOrders(): Flow<List<OrderModel>> {
         return postgrest["orders"]
             .selectAsFlow(OrderModel::id)
-            .flowOn(Dispatchers.IO)
     }
 
     @OptIn(SupabaseExperimental::class)
     fun getGlobalBookings(): Flow<List<BookingModel>> {
         return postgrest["bookings"]
             .selectAsFlow(BookingModel::id)
-            .flowOn(Dispatchers.IO)
     }
 }

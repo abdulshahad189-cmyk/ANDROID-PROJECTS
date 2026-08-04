@@ -27,15 +27,20 @@ class OrderRepository {
     @OptIn(SupabaseExperimental::class)
     fun getMyOrders(userId: String): Flow<List<OrderModel>> {
         return postgrest["orders"]
-            .selectAsFlow(OrderModel::id, filter = FilterOperation("user_id", FilterOperator.EQ, userId))
+            .selectAsFlow(
+                primaryKey = OrderModel::id,
+                filter = FilterOperation("user_id", FilterOperator.EQ, userId)
+            )
             .flowOn(Dispatchers.IO)
     }
 
     suspend fun updateOrderStatus(orderId: String, status: String): Result<Unit> = try {
         withContext(Dispatchers.IO) {
-            postgrest["orders"].update({
-                set("status", status)
-            }) {
+            postgrest["orders"].update(
+                update = {
+                    set("status", status)
+                }
+            ) {
                 filter {
                     eq("id", orderId)
                 }
