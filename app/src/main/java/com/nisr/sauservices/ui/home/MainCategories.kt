@@ -2,6 +2,7 @@ package com.nisr.sauservices.ui.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +10,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -48,8 +52,6 @@ fun CategoriesGrid(
     val allCategories = listOf(
         CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, R.drawable.essential_supplies),
         CategoryItem("Bookings", Screen.BookingsModule.route, R.drawable.bookings),
-        CategoryItem("Mechanic\nServices", "", R.drawable.mechanic_services),
-        CategoryItem("Mobility\nServices", "", R.drawable.mobility_services),
         CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, R.drawable.residential_services),
         CategoryItem("Property &\nLifestyle", "", R.drawable.property_lifestyle),
         CategoryItem("Home\nEssentials", "", R.drawable.home_essentials),
@@ -60,15 +62,17 @@ fun CategoriesGrid(
         CategoryItem("Tech\nServices", "", R.drawable.tech_services),
         CategoryItem("Men's\nGrooming", "", R.drawable.mens_grooming),
         CategoryItem("Women's\nBeauty", "", R.drawable.womens_beauty),
-        CategoryItem("Healthcare &\nPharmacy", "", R.drawable.healthcare_pharmacy)
+        CategoryItem("Healthcare &\nPharmacy", "", R.drawable.healthcare_pharmacy),
+        CategoryItem("Mechanic\nServices", "", R.drawable.mechanic_services),
+        CategoryItem("Mobility\nServices", "", R.drawable.mobility_services)
     )
 
     val homeCategories = listOf(
-        allCategories[0],
-        allCategories[1],
-        allCategories[2],
-        allCategories[3],
-        allCategories[4],
+        allCategories[0], // Essential Supplies
+        allCategories[1], // Bookings
+        allCategories[2], // Residential Services
+        allCategories[3], // Property & Lifestyle
+        allCategories[4], // Home Essentials
         CategoryItem("More\nServices", Screen.Categories.route, null)
     )
 
@@ -81,7 +85,7 @@ fun CategoriesGrid(
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 20.sp,
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
+                modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
             )
         }
 
@@ -90,7 +94,7 @@ fun CategoriesGrid(
         rows.forEach { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 rowItems.forEach { item ->
                     CategoryCard(
@@ -118,14 +122,13 @@ fun CategoriesGrid(
                         }
                     )
                 }
-                // Fill empty slots in the last row if needed
                 if (rowItems.size < 3) {
                     repeat(3 - rowItems.size) {
                         Spacer(Modifier.weight(1f))
                     }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(24.dp)) // Increased spacing between rows
         }
     }
 }
@@ -134,65 +137,70 @@ fun CategoriesGrid(
 fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.98f else 1f)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 150)
+    )
 
-    Card(
+    // Removed the outer Card (big box) and using Column as the container
+    Column(
         modifier = modifier
-            .height(140.dp)
             .scale(scale)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = null, // Removed default ripple to keep it clean
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        // Small neat square box for image/icon
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = if (item.imageRes != null) Arrangement.SpaceBetween else Arrangement.Center
+                .size(72.dp) // Neater square box size
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White) // White box background
+                .padding(4.dp), // Padding inside the white box
+            contentAlignment = Alignment.Center
         ) {
-            if (item.imageRes != null) {
-                // Standardized Image using helper composable
-                CategoryImage(
-                    imageRes = item.imageRes,
-                    title = item.name
-                )
+            // Inner soft shadow/light background effect for the image area
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFF9F9F9), // Light background for image container
+                shadowElevation = 1.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (item.imageRes != null) {
+                        Image(
+                            painter = painterResource(id = item.imageRes),
+                            contentDescription = item.name,
+                            modifier = Modifier.fillMaxSize().padding(4.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Rounded.Apps,
+                            contentDescription = item.name,
+                            tint = OrchidPrimary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
             }
-            
-            Text(
-                text = item.name,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                lineHeight = 14.sp,
-                color = Color.Black,
-                maxLines = 2,
-                modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 4.dp)
-            )
         }
-    }
-}
-
-@Composable
-fun CategoryImage(@DrawableRes imageRes: Int, title: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(90.dp) // Occupies ~65% of 140dp height
-            .padding(8.dp) // White padding around the image
-            .clip(RoundedCornerShape(14.dp)), // Rounded corners for image
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = imageRes),
-            contentDescription = title,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Premium Blinkit style crop
+        
+        Spacer(Modifier.height(10.dp))
+        
+        Text(
+            text = item.name,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            lineHeight = 14.sp,
+            color = Color.Black,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
 }

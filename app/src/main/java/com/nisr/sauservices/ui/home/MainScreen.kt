@@ -35,7 +35,7 @@ fun HomeScreen(navController: NavController){
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFFAFAFA) // Premium Light Gray background (#FAFAFA)
+        containerColor = Color(0xFFF7F7F7) // Minimal Light Gray background
     ){ pad ->
 
         Column(

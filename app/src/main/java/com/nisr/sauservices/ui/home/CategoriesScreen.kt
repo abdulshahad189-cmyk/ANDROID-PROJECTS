@@ -52,7 +52,7 @@ fun CategoriesScreen(navController: NavController) {
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFFAFAFA) // Premium Light Gray
+        containerColor = Color(0xFFF7F7F7) // Minimal Light Gray background
     ) { padding ->
         Column(
             modifier = Modifier
