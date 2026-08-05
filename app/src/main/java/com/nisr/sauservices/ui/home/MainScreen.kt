@@ -1,13 +1,11 @@
 package com.nisr.sauservices.ui.home
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -36,36 +34,35 @@ fun HomeScreen(navController: NavController){
 
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
-        bottomBar = { BottomNavBar(navController) }
+        bottomBar = { BottomNavBar(navController) },
+        containerColor = Color(0xFFFAFAFA) // Premium Light Gray background (#FAFAFA)
     ){ pad ->
 
         Column(
             Modifier
                 .padding(pad)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ){
 
             HeroBanner(navController)
+            
+            Spacer(Modifier.height(18.dp))
             SearchBarUI(navController)
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
             QuickServicesRow(navController)
 
-            Spacer(Modifier.height(20.dp))
-            // Pass a callback to trigger the bottom sheet for "Home Essentials"
+            Spacer(Modifier.height(32.dp))
             CategoriesGrid(navController, onHomeEssentialsClick = {
                 showSheet = true
             })
 
-            Spacer(Modifier.height(20.dp))
-            PopularServicesSection(navController)
+            Spacer(Modifier.height(24.dp))
+            ValuePropositionsRow() // Trust Banner
 
-            Spacer(Modifier.height(20.dp))
-            HowItWorks()
-
-            Spacer(Modifier.height(20.dp))
-            OfferBanner()
+            Spacer(Modifier.height(32.dp))
         }
     }
 }

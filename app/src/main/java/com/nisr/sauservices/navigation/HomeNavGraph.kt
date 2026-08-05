@@ -1,6 +1,5 @@
 package com.nisr.sauservices.navigation
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -23,15 +22,7 @@ fun NavGraphBuilder.homeNavGraph(
     residentialViewModel: ResidentialViewModel
 ) {
     composable(Routes.HOME) {
-        if (sessionManager.isLoggedIn()) {
-            CustomerHomeScreen(navController, sessionManager)
-        } else {
-            LaunchedEffect(Unit) {
-                navController.navigate(Routes.LOGIN) {
-                    popUpTo(Routes.HOME) { inclusive = true }
-                }
-            }
-        }
+        CustomerHomeScreen(navController, sessionManager)
     }
 
     composable(Routes.CATEGORIES) {

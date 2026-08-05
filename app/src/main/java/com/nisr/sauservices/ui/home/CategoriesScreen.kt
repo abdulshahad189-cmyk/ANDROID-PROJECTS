@@ -23,6 +23,7 @@ import com.nisr.sauservices.ui.lifestyle.LifestyleBottomSheet
 import com.nisr.sauservices.ui.tech.TechBottomSheet
 import com.nisr.sauservices.ui.mechanic.MechanicBottomSheet
 import com.nisr.sauservices.ui.mobility.MobilityBottomSheet
+import com.nisr.sauservices.ui.theme.OrchidBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,23 +52,23 @@ fun CategoriesScreen(navController: NavController) {
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color.White
+        containerColor = Color(0xFFFAFAFA) // Premium Light Gray
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
                 "All Categories",
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 24.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
             )
             
-            // Show all categories in the grid
             CategoriesGrid(
                 navController = navController, 
                 showAll = true,
@@ -93,6 +94,8 @@ fun CategoriesScreen(navController: NavController) {
                     showMobilitySheet = true
                 }
             )
+            
+            Spacer(Modifier.height(24.dp))
         }
     }
 

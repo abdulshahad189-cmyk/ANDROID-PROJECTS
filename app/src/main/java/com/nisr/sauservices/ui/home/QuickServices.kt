@@ -17,64 +17,68 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.ui.Screen
+import com.nisr.sauservices.ui.theme.OrchidPrimary
 
-data class ServiceItem(val name: String, val icon: ImageVector, val categoryId: String, val bgColor: Color)
+data class ServiceItem(
+    val name: String, 
+    val icon: ImageVector, 
+    val categoryId: String
+)
 
 @Composable
 fun QuickServicesRow(navController: NavController) {
 
     val list = listOf(
-        ServiceItem("Electrician", Icons.Rounded.ElectricBolt, "electrician", Color(0xFFE3F2FD)),
-        ServiceItem("Plumber", Icons.Rounded.Construction, "plumber", Color(0xFFFFF3E0)),
-        ServiceItem("AC Repair", Icons.Rounded.AcUnit, "ac_repair", Color(0xFFE8F5E9)),
-        ServiceItem("Cleaning", Icons.Rounded.CleaningServices, "home_cleaning", Color(0xFFFCE4EC)),
-        ServiceItem("Salon", Icons.Rounded.ContentCut, "mens_categories", Color(0xFFF3E5F5))
+        ServiceItem("Electrician", Icons.Rounded.ElectricBolt, "electrician"),
+        ServiceItem("Plumber", Icons.Rounded.Handyman, "plumber"),
+        ServiceItem("AC Repair", Icons.Rounded.Air, "ac_repair"),
+        ServiceItem("Cleaning", Icons.Rounded.CleaningServices, "home_cleaning")
     )
 
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(list) { item ->
+        list.forEach { item ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(75.dp)
                     .clickable {
-                        if (item.categoryId == "mens_categories") {
-                            navController.navigate(Screen.MensCategories.route)
-                        } else {
-                            navController.navigate(Screen.ResidentialSubcategories.createRoute(item.categoryId))
-                        }
+                        navController.navigate(Screen.ResidentialSubcategories.createRoute(item.categoryId))
                     }
             ) {
                 Box(
                     modifier = Modifier
-                        .size(65.dp)
+                        .size(72.dp) // Large circles
                         .clip(CircleShape)
-                        .background(item.bgColor),
+                        .background(OrchidPrimary), // Orchid Pink background
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        item.icon,
+                        imageVector = item.icon,
                         contentDescription = item.name,
-                        tint = Color(0xFF001C3D),
-                        modifier = Modifier.size(30.dp)
+                        tint = Color.White, // White icon on pink
+                        modifier = Modifier.size(36.dp)
                     )
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 
                 Text(
                     text = item.name,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
                 )
             }
         }

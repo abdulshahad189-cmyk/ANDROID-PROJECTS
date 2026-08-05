@@ -53,7 +53,7 @@ fun AppNavHost(navController: NavHostController) {
     
     val newBookingsViewModel: NewBookingsViewModel = viewModel()
 
-    NavHost(navController, startDestination = Screen.Onboarding.route) {
+    NavHost(navController, startDestination = Screen.Home.route) {
         
         // --- ONBOARDING & AUTH ---
         composable(Screen.Onboarding.route) { OnboardingScreen(navController) }
