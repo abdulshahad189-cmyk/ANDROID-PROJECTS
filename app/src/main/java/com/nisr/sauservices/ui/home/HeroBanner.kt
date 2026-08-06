@@ -1,36 +1,43 @@
 package com.nisr.sauservices.ui.home
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.PrimaryDark
+import com.nisr.sauservices.ui.theme.White
 
 @Composable
 fun HeroBanner(navController: NavController) {
-    val bannerBackground = Color(0xFFE3F2FD) // Light Blue background as requested
+    val bannerBackground = Color(0xFFEFF6FF) // Very light premium blue
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp),
-        shape = RoundedCornerShape(24.dp),
+            .height(200.dp),
+        shape = RoundedCornerShape(18.dp), // Premium 18dp corners
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = bannerBackground)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(start = 20.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -42,7 +49,7 @@ fun HeroBanner(navController: NavController) {
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 24.sp,
                     lineHeight = 28.sp,
-                    color = Color.Black
+                    color = Black
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -55,35 +62,42 @@ fun HeroBanner(navController: NavController) {
                     fontWeight = FontWeight.Medium
                 )
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(20.dp))
 
                 Button(
                     onClick = { navController.navigate(Screen.ResidentialCategories.route) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)), // Orchid Pink (#E91E63)
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    modifier = Modifier.height(40.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryDark),
+                    shape = RoundedCornerShape(16.dp), // 16dp for buttons
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.height(44.dp)
                 ) {
-                    Text(
-                        "Book a Service", 
-                        fontSize = 13.sp, 
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Book a Service", 
+                            fontSize = 14.sp, 
+                            fontWeight = FontWeight.Bold,
+                            color = White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
-            // Placeholder image area on the right
-            Box(
+            // Illustration on the right
+            Image(
+                painter = painterResource(id = R.drawable.homescreen_illustration),
+                contentDescription = null,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center
-            ) {
-                // Future image location
-            }
+                    .fillMaxHeight(),
+                contentScale = ContentScale.Fit // centerInside / fitCenter equivalent
+            )
         }
     }
 }

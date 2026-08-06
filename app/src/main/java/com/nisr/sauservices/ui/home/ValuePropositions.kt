@@ -17,14 +17,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nisr.sauservices.ui.theme.OrchidPrimary
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 
 @Composable
 fun ValuePropositionsRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFCE4EC).copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+            .background(Color(0xFFEFF6FF).copy(alpha = 0.5f), RoundedCornerShape(10.dp))
             .padding(vertical = 12.dp, horizontal = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -44,7 +44,7 @@ fun ValueItem(icon: ImageVector, text: String) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = OrchidPrimary,
+            tint = PrimaryBlue,
             modifier = Modifier.size(16.dp)
         )
         Spacer(Modifier.width(6.dp))

@@ -1,5 +1,7 @@
 package com.nisr.sauservices.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,24 +13,34 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.nisr.sauservices.ui.theme.OrchidPrimary
+import com.nisr.sauservices.ui.theme.PrimaryBlue
+import com.nisr.sauservices.ui.theme.GrayText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarUI(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
+    var isFocused by remember { mutableStateOf(false) }
+    
+    val elevation by animateDpAsState(
+        targetValue = if (isFocused) 6.dp else 2.dp,
+        animationSpec = tween(durationMillis = 200)
+    )
     
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp) // Redesigned height 56dp
-            .background(Color(0xFFF3F4F6), RoundedCornerShape(18.dp)) // Large rounded corners
+            .height(56.dp)
+            .shadow(elevation, RoundedCornerShape(18.dp))
+            .background(Color(0xFFF3F4F6), RoundedCornerShape(18.dp))
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -39,7 +51,7 @@ fun SearchBarUI(navController: NavController) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
-                tint = Color.Gray,
+                tint = PrimaryBlue,
                 modifier = Modifier.size(24.dp)
             )
             
@@ -54,14 +66,16 @@ fun SearchBarUI(navController: NavController) {
                         fontWeight = FontWeight.Normal
                     )
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged { isFocused = it.isFocused },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = OrchidPrimary
+                    cursorColor = PrimaryBlue
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),

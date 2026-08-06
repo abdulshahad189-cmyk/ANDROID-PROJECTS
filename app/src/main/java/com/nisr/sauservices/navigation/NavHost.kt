@@ -1,5 +1,10 @@
 package com.nisr.sauservices.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,7 +58,22 @@ fun AppNavHost(navController: NavHostController) {
     
     val newBookingsViewModel: NewBookingsViewModel = viewModel()
 
-    NavHost(navController, startDestination = Screen.Home.route) {
+    NavHost(
+        navController = navController, 
+        startDestination = Screen.Home.route,
+        enterTransition = { 
+            slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(250)) + fadeIn(animationSpec = tween(250)) 
+        },
+        exitTransition = { 
+            fadeOut(animationSpec = tween(250)) 
+        },
+        popEnterTransition = { 
+            fadeIn(animationSpec = tween(250)) 
+        },
+        popExitTransition = { 
+            slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(250)) + fadeOut(animationSpec = tween(250)) 
+        }
+    ) {
         
         // --- ONBOARDING & AUTH ---
         composable(Screen.Onboarding.route) { OnboardingScreen(navController) }

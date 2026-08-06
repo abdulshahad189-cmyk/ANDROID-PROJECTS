@@ -1,5 +1,8 @@
 package com.nisr.sauservices.ui.home
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,11 +28,18 @@ import com.nisr.sauservices.ui.mechanic.MechanicBottomSheet
 import com.nisr.sauservices.ui.mobility.MobilityBottomSheet
 import com.nisr.sauservices.ui.theme.OrchidBackground
 
+import com.nisr.sauservices.ui.theme.AppBackground
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesScreen(navController: NavController) {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
+    
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        visible = true
+    }
     
     var showHomeEssentialsSheet by remember { mutableStateOf(false) }
     var showEduSheet by remember { mutableStateOf(false) }
@@ -52,50 +62,56 @@ fun CategoriesScreen(navController: NavController) {
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFF7F7F7) // Minimal Light Gray background
+        containerColor = AppBackground // Premium neutral background
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(250, easing = FastOutSlowInEasing)) + 
+                    slideInVertically(initialOffsetY = { 40 }, animationSpec = tween(250, easing = FastOutSlowInEasing))
         ) {
-            Text(
-                "All Categories",
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
-            )
-            
-            CategoriesGrid(
-                navController = navController, 
-                showAll = true,
-                onHomeEssentialsClick = {
-                    showHomeEssentialsSheet = true
-                },
-                onEducationClick = {
-                    showEduSheet = true
-                },
-                onBusinessClick = {
-                    showBizSheet = true
-                },
-                onLifestyleClick = {
-                    showLifeSheet = true
-                },
-                onTechClick = {
-                    showTechSheet = true
-                },
-                onMechanicClick = {
-                    showMechanicSheet = true
-                },
-                onMobilityClick = {
-                    showMobilitySheet = true
-                }
-            )
-            
-            Spacer(Modifier.height(24.dp))
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    "All Categories",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 24.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
+                )
+                
+                CategoriesGrid(
+                    navController = navController, 
+                    showAll = true,
+                    onHomeEssentialsClick = {
+                        showHomeEssentialsSheet = true
+                    },
+                    onEducationClick = {
+                        showEduSheet = true
+                    },
+                    onBusinessClick = {
+                        showBizSheet = true
+                    },
+                    onLifestyleClick = {
+                        showLifeSheet = true
+                    },
+                    onTechClick = {
+                        showTechSheet = true
+                    },
+                    onMechanicClick = {
+                        showMechanicSheet = true
+                    },
+                    onMobilityClick = {
+                        showMobilitySheet = true
+                    }
+                )
+                
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 

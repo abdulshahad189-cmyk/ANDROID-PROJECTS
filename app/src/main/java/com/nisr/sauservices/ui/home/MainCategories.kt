@@ -1,9 +1,11 @@
 package com.nisr.sauservices.ui.home
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,7 +31,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.OrchidPrimary
+import com.nisr.sauservices.ui.theme.PrimaryBlue
+import com.nisr.sauservices.ui.theme.Black
+import kotlinx.coroutines.delay
 
 data class CategoryItem(
     val name: String, 
@@ -80,25 +84,37 @@ fun CategoriesGrid(
 
     Column(modifier = Modifier.padding(top = 8.dp)) {
         if (!showAll) {
-            Text(
-                "Categories",
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 20.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Categories",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+                TextButton(onClick = { navController.navigate(Screen.Categories.route) }) {
+                    Text("See all", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
         }
 
         val rows = displayList.chunked(3)
         
-        rows.forEach { rowItems ->
+        rows.forEachIndexed { rowIndex, rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                rowItems.forEach { item ->
+                rowItems.forEachIndexed { colIndex, item ->
+                    val index = rowIndex * 3 + colIndex
                     CategoryCard(
                         item = item, 
+                        index = index,
                         modifier = Modifier.weight(1f),
                         onClick = {
                             when (item.name.replace("\n", " ")) {
@@ -134,73 +150,86 @@ fun CategoriesGrid(
 }
 
 @Composable
-fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CategoryCard(item: CategoryItem, index: Int, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = tween(durationMillis = 150)
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = tween(durationMillis = 120)
     )
 
-    // Removed the outer Card (big box) and using Column as the container
-    Column(
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(index * 25L) // Staggered entrance
+        visible = true
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(220)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(220)),
         modifier = modifier
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null, // Removed default ripple to keep it clean
-                onClick = onClick
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Small neat square box for image/icon
-        Box(
+        Column(
             modifier = Modifier
-                .size(72.dp) // Neater square box size
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White) // White box background
-                .padding(4.dp), // Padding inside the white box
-            contentAlignment = Alignment.Center
+                .scale(scale)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                    onClick = onClick
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Inner soft shadow/light background effect for the image area
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFF9F9F9), // Light background for image container
-                shadowElevation = 1.dp
+            // Small neat square box for image/icon
+            Box(
+                modifier = Modifier
+                    .size(72.dp) // Neater square box size
+                    .clip(RoundedCornerShape(18.dp)) // 18dp for Category cards
+                    .background(Color.White) // White box background
+                    .padding(4.dp), // Padding inside the white box
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    if (item.imageRes != null) {
-                        Image(
-                            painter = painterResource(id = item.imageRes),
-                            contentDescription = item.name,
-                            modifier = Modifier.fillMaxSize().padding(4.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Rounded.Apps,
-                            contentDescription = item.name,
-                            tint = OrchidPrimary,
-                            modifier = Modifier.size(28.dp)
-                        )
+                // Inner soft shadow/light background effect for the image area
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFF9FAFB), // Very light gray background
+                    shadowElevation = 1.dp
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (item.imageRes != null) {
+                            Image(
+                                painter = painterResource(id = item.imageRes),
+                                contentDescription = item.name,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(4.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.Apps,
+                                contentDescription = item.name,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
                 }
             }
+
+            Spacer(Modifier.height(10.dp))
+
+            Text(
+                text = item.name,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                lineHeight = 14.sp,
+                color = Black,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
         }
-        
-        Spacer(Modifier.height(10.dp))
-        
-        Text(
-            text = item.name,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            lineHeight = 14.sp,
-            color = Color.Black,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
     }
 }

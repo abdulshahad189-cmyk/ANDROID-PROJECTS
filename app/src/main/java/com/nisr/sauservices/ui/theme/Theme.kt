@@ -8,16 +8,19 @@ import androidx.compose.runtime.Composable
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     val colorScheme = lightColorScheme(
-        primary = OrchidPrimary,
+        primary = PrimaryBlue,
         onPrimary = White,
-        primaryContainer = OrchidLight,
-        onPrimaryContainer = OrchidDark,
-        secondary = OrchidAccent,
-        onSecondary = Black,
-        background = OrchidBackground,
+        primaryContainer = PrimaryLight,
+        onPrimaryContainer = PrimaryDark,
+        secondary = PrimaryBlue,
+        onSecondary = White,
+        background = AppBackground,
         onBackground = Black,
         surface = White,
-        onSurface = Black
+        onSurface = Black,
+        surfaceVariant = White,
+        onSurfaceVariant = GrayText,
+        outline = GrayDivider
     )
 
     MaterialTheme(
