@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nisr.sauservices.ui.theme.PinkPrimary
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.GrayText
+import com.nisr.sauservices.ui.theme.PrimaryAccent
 
 data class HowItWorksItem(val name: String, val icon: ImageVector)
 
@@ -32,18 +34,18 @@ fun HowItWorks() {
         HowItWorksItem("Get Professional at Home", Icons.Outlined.CheckCircle)
     )
 
-    Column(modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)) {
+    Column(modifier = Modifier.padding(top = 28.dp, bottom = 28.dp)) {
         Text(
             "How It Works",
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
+            fontSize = 17.sp,
+            color = Black,
+            modifier = Modifier.padding(start = 4.dp, bottom = 20.dp)
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // Added spacing between items
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             list.forEach { item ->
                 Column(
@@ -52,28 +54,28 @@ fun HowItWorks() {
                 ) {
                     Box(
                         Modifier
-                            .size(75.dp) // Slightly larger
+                            .size(76.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color(0xFFFFF0F5)), // Softer pink background
+                            .background(PrimaryAccent.copy(alpha = 0.08f)), // Very soft primary accent background
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             item.icon, 
                             null, 
-                            tint = PinkPrimary, 
-                            modifier = Modifier.size(34.dp)
+                            tint = PrimaryAccent, 
+                            modifier = Modifier.size(36.dp)
                         )
                     }
 
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(12.dp))
                     
                     Text(
                         item.name, 
-                        fontSize = 11.sp, 
-                        fontWeight = FontWeight.Bold, // Bolder for better visibility
+                        fontSize = 12.sp, 
+                        fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        lineHeight = 14.sp,
-                        color = Color.DarkGray
+                        lineHeight = 16.sp,
+                        color = GrayText
                     )
                 }
             }

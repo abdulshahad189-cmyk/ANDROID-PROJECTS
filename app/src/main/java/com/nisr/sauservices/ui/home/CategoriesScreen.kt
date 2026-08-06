@@ -6,10 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,9 +23,8 @@ import com.nisr.sauservices.ui.lifestyle.LifestyleBottomSheet
 import com.nisr.sauservices.ui.tech.TechBottomSheet
 import com.nisr.sauservices.ui.mechanic.MechanicBottomSheet
 import com.nisr.sauservices.ui.mobility.MobilityBottomSheet
-import com.nisr.sauservices.ui.theme.OrchidBackground
-
 import com.nisr.sauservices.ui.theme.AppBackground
+import com.nisr.sauservices.ui.theme.Black
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,12 +58,12 @@ fun CategoriesScreen(navController: NavController) {
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = AppBackground // Premium neutral background
+        containerColor = AppBackground
     ) { padding ->
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(tween(250, easing = FastOutSlowInEasing)) + 
-                    slideInVertically(initialOffsetY = { 40 }, animationSpec = tween(250, easing = FastOutSlowInEasing))
+            enter = fadeIn(tween(400, easing = FastOutSlowInEasing)) + 
+                    slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(400, easing = FastOutSlowInEasing))
         ) {
             Column(
                 modifier = Modifier
@@ -79,9 +75,9 @@ fun CategoriesScreen(navController: NavController) {
                 Text(
                     "All Categories",
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 24.sp,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
+                    fontSize = 18.sp,
+                    color = Black,
+                    modifier = Modifier.padding(bottom = 24.dp, start = 4.dp)
                 )
                 
                 CategoriesGrid(
@@ -110,7 +106,7 @@ fun CategoriesScreen(navController: NavController) {
                     }
                 )
                 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(32.dp))
             }
         }
     }

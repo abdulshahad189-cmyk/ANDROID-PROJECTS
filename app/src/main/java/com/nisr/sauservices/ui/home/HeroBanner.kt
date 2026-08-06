@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -19,20 +20,20 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.Black
-import com.nisr.sauservices.ui.theme.PrimaryDark
+import com.nisr.sauservices.ui.theme.DarkBlue
+import com.nisr.sauservices.ui.theme.SecondaryBlue
 import com.nisr.sauservices.ui.theme.White
 
 @Composable
 fun HeroBanner(navController: NavController) {
-    val bannerBackground = Color(0xFFEFF6FF) // Very light premium blue
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        shape = RoundedCornerShape(18.dp), // Premium 18dp corners
+            .height(200.dp)
+            .shadow(8.dp, RoundedCornerShape(18.dp)),
+        shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = bannerBackground)
+        colors = CardDefaults.cardColors(containerColor = SecondaryBlue)
     ) {
         Row(
             modifier = Modifier
@@ -66,24 +67,27 @@ fun HeroBanner(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(Screen.ResidentialCategories.route) },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryDark),
-                    shape = RoundedCornerShape(16.dp), // 16dp for buttons
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    modifier = Modifier.height(44.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.wrapContentHeight().wrapContentWidth()
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             "Book a Service", 
-                            fontSize = 14.sp, 
+                            fontSize = 13.sp, 
                             fontWeight = FontWeight.Bold,
                             color = White
                         )
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(6.dp))
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight, 
                             contentDescription = null,
                             tint = White,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -96,7 +100,7 @@ fun HeroBanner(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                contentScale = ContentScale.Fit // centerInside / fitCenter equivalent
+                contentScale = ContentScale.Fit
             )
         }
     }

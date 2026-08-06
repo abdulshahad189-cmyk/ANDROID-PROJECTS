@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -22,7 +23,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.PinkPrimary
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.GrayText
+import com.nisr.sauservices.ui.theme.PrimaryAccent
 
 data class PopularService(
     val id: String,
@@ -41,7 +44,7 @@ fun PopularServicesSection(navController: NavController) {
         PopularService("hc2", "Bathroom Cleaning", R.drawable.bathroom_cleaning, "₹399", "4.8", "home_cleaning", "clean_room")
     )
 
-    Column(modifier = Modifier.padding(vertical = 20.dp)) {
+    Column(modifier = Modifier.padding(vertical = 24.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -52,13 +55,13 @@ fun PopularServicesSection(navController: NavController) {
             Text(
                 "Popular Near You",
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color.Black
+                fontSize = 17.sp,
+                color = Black
             )
             
-            // Pager indicator dots (dummy)
-            Row {
-                Box(Modifier.size(6.dp).clip(RoundedCornerShape(50)).background(PinkPrimary))
+            // Pager indicator dots
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(PrimaryAccent))
                 Spacer(Modifier.width(4.dp))
                 Box(Modifier.size(6.dp).clip(RoundedCornerShape(50)).background(Color.LightGray))
                 Spacer(Modifier.width(4.dp))
@@ -66,14 +69,19 @@ fun PopularServicesSection(navController: NavController) {
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(18.dp))
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
             items(list) { item ->
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .width(280.dp)
+                        .shadow(8.dp, RoundedCornerShape(18.dp)),
+                    shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.width(260.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column {
@@ -82,12 +90,12 @@ fun PopularServicesSection(navController: NavController) {
                             contentDescription = item.name,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(140.dp)
-                                .clip(RoundedCornerShape(16.dp)),
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)),
                             contentScale = ContentScale.Crop
                         )
                         
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -96,17 +104,18 @@ fun PopularServicesSection(navController: NavController) {
                                 Text(
                                     item.name,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
+                                    fontSize = 16.sp,
+                                    color = Black
                                 )
                                 Text(
                                     item.price,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    color = Color.Black
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 16.sp,
+                                    color = Black
                                 )
                             }
                             
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(10.dp))
                             
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -118,13 +127,14 @@ fun PopularServicesSection(navController: NavController) {
                                         Icons.Default.Star,
                                         null,
                                         tint = Color(0xFFFFB300),
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
                                         item.rating,
-                                        fontSize = 13.sp,
-                                        color = Color.Gray
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = GrayText
                                     )
                                 }
                                 
@@ -132,12 +142,12 @@ fun PopularServicesSection(navController: NavController) {
                                     onClick = {
                                         navController.navigate(Screen.ResidentialServiceList.createRoute(item.categoryId, item.subcategoryId))
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.height(32.dp).width(90.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.height(36.dp).width(100.dp),
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
-                                    Text("Book Now", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("Book Now", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

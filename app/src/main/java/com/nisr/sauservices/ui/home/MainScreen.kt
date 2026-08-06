@@ -8,14 +8,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.ui.essentials.HomeEssentialsSheetContent
-
 import com.nisr.sauservices.ui.theme.AppBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,15 +44,15 @@ fun HomeScreen(navController: NavController){
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = AppBackground // Premium neutral background
+        containerColor = AppBackground
     ){ pad ->
 
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing)) + 
+            enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)) + 
                     slideInVertically(
-                        initialOffsetY = { 40 }, // Approx 16dp
-                        animationSpec = tween(250, easing = FastOutSlowInEasing)
+                        initialOffsetY = { 30 },
+                        animationSpec = tween(400, easing = FastOutSlowInEasing)
                     )
         ) {
             Column(
@@ -61,15 +60,15 @@ fun HomeScreen(navController: NavController){
                     .padding(pad)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             ){
 
                 HeroBanner(navController)
                 
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(24.dp))
                 SearchBarUI(navController)
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(28.dp))
                 QuickServicesRow(navController)
 
                 Spacer(Modifier.height(32.dp))
@@ -77,10 +76,16 @@ fun HomeScreen(navController: NavController){
                     showSheet = true
                 })
 
-                Spacer(Modifier.height(24.dp))
-                ValuePropositionsRow() // Trust Banner
+                Spacer(Modifier.height(32.dp))
+                PopularServicesSection(navController)
 
                 Spacer(Modifier.height(32.dp))
+                HowItWorks()
+
+                Spacer(Modifier.height(32.dp))
+                ValuePropositionsRow()
+
+                Spacer(Modifier.height(40.dp))
             }
         }
     }

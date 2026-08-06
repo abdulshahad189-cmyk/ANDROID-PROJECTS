@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.PrimaryBlue
 import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 import kotlinx.coroutines.delay
 
 data class CategoryItem(
@@ -94,8 +94,8 @@ fun CategoriesGrid(
                 Text(
                     "Categories",
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 20.sp,
-                    color = Color.Black
+                    fontSize = 17.sp,
+                    color = Black
                 )
                 TextButton(onClick = { navController.navigate(Screen.Categories.route) }) {
                     Text("See all", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -144,7 +144,7 @@ fun CategoriesGrid(
                     }
                 }
             }
-            Spacer(Modifier.height(24.dp)) // Increased spacing between rows
+            Spacer(Modifier.height(24.dp)) // Spacing between rows
         }
     }
 }
@@ -174,44 +174,44 @@ fun CategoryCard(item: CategoryItem, index: Int, modifier: Modifier = Modifier, 
                 .scale(scale)
                 .clickable(
                     interactionSource = interactionSource,
-                    indication = LocalIndication.current,
+                    indication = null, // Removed default ripple for cleaner look
                     onClick = onClick
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Small neat square box for image/icon
-            Box(
-                modifier = Modifier
-                    .size(72.dp) // Neater square box size
-                    .clip(RoundedCornerShape(18.dp)) // 18dp for Category cards
-                    .background(Color.White) // White box background
-                    .padding(4.dp), // Padding inside the white box
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.size(76.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                shadowElevation = 4.dp
             ) {
-                // Inner soft shadow/light background effect for the image area
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFFF9FAFB), // Very light gray background
-                    shadowElevation = 1.dp
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        if (item.imageRes != null) {
-                            Image(
-                                painter = painterResource(id = item.imageRes),
-                                contentDescription = item.name,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(4.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Rounded.Apps,
-                                contentDescription = item.name,
-                                tint = PrimaryBlue,
-                                modifier = Modifier.size(28.dp)
-                            )
+                    // Inner light gray background for the image
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFF8F9FA)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (item.imageRes != null) {
+                                Image(
+                                    painter = painterResource(id = item.imageRes),
+                                    contentDescription = item.name,
+                                    modifier = Modifier.fillMaxSize().padding(6.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Rounded.Apps,
+                                    contentDescription = item.name,
+                                    tint = PrimaryBlue,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -221,7 +221,7 @@ fun CategoryCard(item: CategoryItem, index: Int, modifier: Modifier = Modifier, 
 
             Text(
                 text = item.name,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
                 lineHeight = 14.sp,

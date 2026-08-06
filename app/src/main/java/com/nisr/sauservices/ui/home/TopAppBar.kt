@@ -3,13 +3,13 @@ package com.nisr.sauservices.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.LocalMall
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -71,25 +71,26 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Left: Logo
+            // Left: Logo & Text
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(0.8f)
+                modifier = Modifier.wrapContentWidth()
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(Black),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("S", color = White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                    Text("S", color = White, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp)
                 }
-                Spacer(Modifier.width(8.dp))
-                Column {
+                Spacer(Modifier.width(10.dp))
+                Column(verticalArrangement = Arrangement.Center) {
                     Text(
                         "SAU",
                         fontWeight = FontWeight.Bold,
@@ -98,11 +99,11 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                         lineHeight = 18.sp
                     )
                     Text(
-                        "SOLUTIONS",
-                        fontSize = 9.sp,
+                        "Solutions",
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Black,
-                        letterSpacing = 1.sp
+                        color = GrayText,
+                        lineHeight = 10.sp
                     )
                 }
             }
@@ -110,25 +111,27 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
             // Center: Location Selector Pill
             Surface(
                 modifier = Modifier
-                    .wrapContentWidth()
+                    .weight(1f)
+                    .height(38.dp)
                     .clip(RoundedCornerShape(50))
                     .clickable { navController.navigate(Screen.MapPicker.route) },
-                color = LightBluePill
+                color = SecondaryBlue.copy(alpha = 0.6f)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocationOn, 
                         contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(14.dp)
+                        tint = PrimaryAccent,
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = userAddress,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         color = Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -147,13 +150,12 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
             // Right: Action Icons
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 IconButton(onClick = { /* Bag action */ }, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Outlined.LocalMall,
-                        contentDescription = "Shopping Bag",
+                        contentDescription = "Bag",
                         tint = Black,
                         modifier = Modifier.size(24.dp)
                     )
@@ -162,7 +164,7 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 IconButton(onClick = { navController.navigate(Screen.Cart.route) }, modifier = Modifier.size(36.dp)) {
                     BadgedBox(badge = {
                         if (cartCount > 0) {
-                            Badge(containerColor = PrimaryBlue) {
+                            Badge(containerColor = PrimaryAccent) {
                                 Text(cartCount.toString(), color = White, fontSize = 9.sp)
                             }
                         }
@@ -176,10 +178,10 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                     }
                 }
 
-                IconButton(onClick = { showLogoutDialog = true }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { /* Share action */ }, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        Icons.AutoMirrored.Outlined.Logout,
-                        contentDescription = "Logout",
+                        Icons.Outlined.Share,
+                        contentDescription = "Share",
                         tint = Black,
                         modifier = Modifier.size(24.dp)
                     )

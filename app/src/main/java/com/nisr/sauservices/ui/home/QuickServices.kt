@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -13,8 +14,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 import kotlinx.coroutines.delay
 
 data class ServiceItem(
@@ -88,7 +91,7 @@ fun QuickServiceCard(item: ServiceItem, index: Int, navController: NavController
                 .scale(scale)
                 .clickable(
                     interactionSource = interactionSource,
-                    indication = LocalIndication.current,
+                    indication = null,
                     onClick = {
                         if (item.categoryId == "mens_categories") {
                             navController.navigate(Screen.MensCategories.route)
@@ -98,22 +101,32 @@ fun QuickServiceCard(item: ServiceItem, index: Int, navController: NavController
                     }
                 )
         ) {
-            Card(
-                modifier = Modifier.size(72.dp),
-                shape = RoundedCornerShape(18.dp), // 18dp for Service cards
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp) // Soft shadow
+            // Small neat square box for image
+            Surface(
+                modifier = Modifier.size(76.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                shadowElevation = 4.dp
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = item.imageRes),
-                        contentDescription = item.name,
-                        modifier = Modifier.size(46.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    // Inner light gray background for the image
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFF8F9FA)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Image(
+                                painter = painterResource(id = item.imageRes),
+                                contentDescription = item.name,
+                                modifier = Modifier.fillMaxSize().padding(6.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
                 }
             }
 
@@ -123,7 +136,7 @@ fun QuickServiceCard(item: ServiceItem, index: Int, navController: NavController
                 text = item.name,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF111827), // Primary Text
+                color = Black,
                 textAlign = TextAlign.Center,
                 maxLines = 1
             )

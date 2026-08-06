@@ -10,8 +10,8 @@ fun AppTheme(content: @Composable () -> Unit) {
     val colorScheme = lightColorScheme(
         primary = PrimaryBlue,
         onPrimary = White,
-        primaryContainer = PrimaryLight,
-        onPrimaryContainer = PrimaryDark,
+        primaryContainer = LightBluePill,
+        onPrimaryContainer = DarkBlue,
         secondary = PrimaryBlue,
         onSecondary = White,
         background = AppBackground,
@@ -20,7 +20,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         onSurface = Black,
         surfaceVariant = White,
         onSurfaceVariant = GrayText,
-        outline = GrayDivider
+        outline = BorderGray
     )
 
     MaterialTheme(
