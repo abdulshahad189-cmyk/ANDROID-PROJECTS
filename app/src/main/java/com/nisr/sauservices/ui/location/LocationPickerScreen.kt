@@ -36,12 +36,14 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.nisr.sauservices.ui.viewmodel.LocationViewModel
+import com.nisr.sauservices.ui.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerScreen(
     navController: NavController,
-    viewModel: LocationViewModel = viewModel()
+    viewModel: LocationViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -231,6 +233,7 @@ fun LocationPickerScreen(
                     Button(
                         onClick = { 
                             viewModel.confirmLocation { 
+                                profileViewModel.fetchUserProfile()
                                 navController.popBackStack() 
                             } 
                         },

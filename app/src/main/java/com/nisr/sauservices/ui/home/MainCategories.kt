@@ -39,32 +39,18 @@ data class CategoryItem(
 fun CategoriesGrid(
     navController: NavController, 
     showAll: Boolean = false,
-    onHomeEssentialsClick: () -> Unit = {},
-    onEducationClick: () -> Unit = {},
-    onBusinessClick: () -> Unit = {},
-    onLifestyleClick: () -> Unit = {},
-    onTechClick: () -> Unit = {},
-    onMechanicClick: () -> Unit = {},
-    onMobilityClick: () -> Unit = {}
+    onHomeEssentialsClick: (() -> Unit)? = null,
+    onEducationClick: (() -> Unit)? = null,
+    onBusinessClick: (() -> Unit)? = null,
+    onLifestyleClick: (() -> Unit)? = null,
+    onTechClick: (() -> Unit)? = null,
+    onMechanicClick: (() -> Unit)? = null,
+    onMobilityClick: (() -> Unit)? = null
 ) {
     val allCategories = listOf(
         CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, "Daily essentials", R.drawable.essential_supplies),
         CategoryItem("Bookings", Screen.BookingsModule.route, "All your bookings", R.drawable.bookings),
         CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, "Home services", R.drawable.residential_services),
-<<<<<<< Updated upstream
-        CategoryItem("Property &\nLifestyle", "", "Premium lifestyle", R.drawable.property_lifestyle),
-        CategoryItem("Home\nEssentials", "", "Home maintenance", R.drawable.home_essentials),
-        CategoryItem("Food &\nBeverages", "", "Food & drinks", R.drawable.food_beverages),
-        CategoryItem("Education\nServices", "", "Learn & grow", R.drawable.education_services),
-        CategoryItem("Business &\nProfessional", "", "Business services", R.drawable.business_professional),
-        CategoryItem("Home &\nLifestyle", "", "Lifestyle needs", R.drawable.home_lifestyle),
-        CategoryItem("Tech\nServices", "", "Tech solutions", R.drawable.tech_services),
-        CategoryItem("Men's\nGrooming", "", "Grooming needs", R.drawable.mens_grooming),
-        CategoryItem("Women's\nBeauty", "", "Beauty services", R.drawable.womens_beauty),
-        CategoryItem("Healthcare &\nPharmacy", "", "Health care", R.drawable.healthcare_pharmacy),
-        CategoryItem("Mechanic\nServices", "", "Vehicle services", R.drawable.mechanic_services),
-        CategoryItem("Mobility\nServices", "", "Travel with ease", R.drawable.mobility_services)
-=======
         CategoryItem("Mechanical\nKit", Screen.MechanicMain.route, "Mechanic services", R.drawable.mechanic_services),
         CategoryItem("Mobility\nKit", Screen.MobilityMain.route, "Mobility services", R.drawable.mobility_services),
         CategoryItem("Property &\nLifestyle", Screen.PLSMain.route, "Premium lifestyle", R.drawable.property_lifestyle),
@@ -77,7 +63,6 @@ fun CategoriesGrid(
         CategoryItem("Men's\nGrooming", Screen.MensCategories.route, "Grooming needs", R.drawable.mens_grooming),
         CategoryItem("Women's\nBeauty", Screen.WomensBeautyCategories.route, "Beauty services", R.drawable.womens_beauty),
         CategoryItem("Healthcare &\nPharmacy", Screen.HealthcareCategories.route, "Health care", R.drawable.healthcare_pharmacy)
->>>>>>> Stashed changes
     )
 
     val homeCategories = listOf(
@@ -86,8 +71,6 @@ fun CategoriesGrid(
         allCategories[2],
         allCategories[3],
         allCategories[4],
-        allCategories[13], // Mechanic Services
-        allCategories[14], // Mobility Services
         CategoryItem("More\nServices", Screen.Categories.route, "Explore more", null)
     )
 
@@ -131,33 +114,16 @@ fun CategoriesGrid(
                         item = item, 
                         modifier = Modifier.weight(1f),
                         onClick = {
-<<<<<<< Updated upstream
-                            when (item.name.replace("\n", " ")) {
-                                "Essential Supplies" -> navController.navigate(item.route)
-                                "Bookings" -> navController.navigate(item.route)
-                                "Residential Services" -> navController.navigate(item.route)
-                                "Property & Lifestyle" -> onLifestyleClick()
-                                "Home Essentials" -> onHomeEssentialsClick()
-                                "Food & Beverages" -> { /* Handle food */ }
-                                "Education Services" -> onEducationClick()
-                                "Business & Professional" -> onBusinessClick()
-                                "Home & Lifestyle" -> onLifestyleClick()
-                                "Tech Services" -> onTechClick()
-                                "Mechanic Services" -> onMechanicClick()
-                                "Mobility Services" -> onMobilityClick()
-                                "More Services" -> navController.navigate(item.route)
-=======
                             val itemName = item.name.replace("\n", " ")
                             when {
-                                itemName == "Home Essentials" && onHomeEssentialsClick != {} -> onHomeEssentialsClick()
-                                itemName == "Education Services" && onEducationClick != {} -> onEducationClick()
-                                itemName == "Business & Professional" && onBusinessClick != {} -> onBusinessClick()
-                                itemName == "Home & Lifestyle" && onLifestyleClick != {} -> onLifestyleClick()
-                                itemName == "Tech Services" && onTechClick != {} -> onTechClick()
-                                itemName == "Mechanical Kit" && onMechanicClick != {} -> onMechanicClick()
-                                itemName == "Mobility Kit" && onMobilityClick != {} -> onMobilityClick()
+                                itemName == "Home Essentials" && onHomeEssentialsClick != null -> onHomeEssentialsClick()
+                                itemName == "Education Services" && onEducationClick != null -> onEducationClick()
+                                itemName == "Business & Professional" && onBusinessClick != null -> onBusinessClick()
+                                itemName == "Home & Lifestyle" && onLifestyleClick != null -> onLifestyleClick()
+                                itemName == "Tech Services" && onTechClick != null -> onTechClick()
+                                (itemName == "Mechanical Kit" || itemName == "Mechanic Services") && onMechanicClick != null -> onMechanicClick()
+                                (itemName == "Mobility Kit" || itemName == "Mobility Services") && onMobilityClick != null -> onMobilityClick()
                                 item.route.isNotEmpty() -> navController.navigate(item.route)
->>>>>>> Stashed changes
                             }
                         }
                     )
@@ -172,6 +138,7 @@ fun CategoriesGrid(
         }
     }
 }
+
 
 @Composable
 fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () -> Unit) {

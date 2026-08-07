@@ -112,7 +112,7 @@ class LocationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Update user's location in the 'users' table or a dedicated 'locations' table
+                    // Update user's location in the 'users' table
                     postgrest["users"].update({
                         set("address", uiState.address)
                         set("latitude", uiState.centerLocation.latitude)
@@ -121,6 +121,7 @@ class LocationViewModel : ViewModel() {
                         filter { eq("id", userId) }
                     }
                 }
+                // We'll rely on the UI to refresh or navigate
                 onSuccess()
             } catch (e: Exception) {
                 // Log error

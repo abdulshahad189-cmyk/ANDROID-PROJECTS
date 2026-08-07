@@ -33,6 +33,7 @@ import com.nisr.sauservices.ui.onboarding.OnboardingScreen
 import com.nisr.sauservices.ui.profile.*
 import com.nisr.sauservices.ui.location.LocationPickerScreen
 import com.nisr.sauservices.ui.location.OrderTrackingScreen
+import com.nisr.sauservices.ui.payment.*
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -387,6 +388,71 @@ fun AppNavHost(navController: NavHostController) {
         composable(Screen.MobilityMain.route) { MobilityMainScreen(navController, mobilityViewModel) }
         composable(Screen.MobilitySuccess.route) { 
             BookingSuccessScreen(navController, "Your ride is booked! Driver is on the way.")
+        }
+
+        // --- PAYMENT ROUTES ---
+        composable(
+            route = Screen.PaymentMethod.route,
+            arguments = listOf(
+                navArgument("bookingId") { type = NavType.StringType },
+                navArgument("customerId") { type = NavType.StringType },
+                navArgument("partnerId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.FloatType }
+            )
+        ) { backStackEntry ->
+            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
+            val cId = backStackEntry.arguments?.getString("customerId") ?: ""
+            val pId = backStackEntry.arguments?.getString("partnerId") ?: ""
+            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            PaymentMethodScreen(navController, bId, cId, pId, amt)
+        }
+
+        composable(
+            route = Screen.CashSuccess.route,
+            arguments = listOf(
+                navArgument("paymentId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.FloatType }
+            )
+        ) { backStackEntry ->
+            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
+            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            CashBookingSuccessScreen(navController, pId, amt)
+        }
+
+        composable(
+            route = Screen.CashCollection.route,
+            arguments = listOf(
+                navArgument("paymentId") { type = NavType.StringType },
+                navArgument("bookingId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.FloatType }
+            )
+        ) { backStackEntry ->
+            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
+            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
+            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            CashCollectionScreen(navController, pId, bId, amt)
+        }
+
+        composable(
+            route = Screen.CustomerOtp.route,
+            arguments = listOf(
+                navArgument("paymentId") { type = NavType.StringType },
+                navArgument("bookingId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.FloatType }
+            )
+        ) { backStackEntry ->
+            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
+            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
+            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            CustomerOtpScreen(navController, pId, bId, amt)
+        }
+
+        composable(
+            route = Screen.PaidSuccess.route,
+            arguments = listOf(navArgument("amount") { type = NavType.FloatType })
+        ) { backStackEntry ->
+            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            BookingSuccessScreen(navController, "Payment of ₹${amt.toInt()} received successfully!")
         }
     }
 }

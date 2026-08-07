@@ -201,6 +201,22 @@ data class Delivery(
 }
 
 @Serializable
+data class CashPaymentModel(
+    @SerialName("id") val id: String = "",
+    @SerialName("booking_id") val bookingId: String = "",
+    @SerialName("customer_id") val customerId: String = "",
+    @SerialName("partner_id") val partnerId: String = "",
+    @SerialName("amount") val amount: Double = 0.0,
+    @SerialName("commission") val commission: Double = 0.0,
+    @SerialName("partner_amount") val partnerAmount: Double = 0.0,
+    @SerialName("status") val status: String = "pending", // pending, cash_collected, paid
+    @SerialName("otp") val otp: String = "",
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("collected_at") val collectedAt: String? = null,
+    @SerialName("confirmed_at") val confirmedAt: String? = null
+)
+
+@Serializable
 data class PLSCategory(
     @SerialName("id") val id: String = "",
     @SerialName("name") val name: String = "",

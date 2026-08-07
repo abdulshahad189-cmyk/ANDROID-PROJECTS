@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.LocalMall
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -23,22 +22,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.local.SessionManager
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.*
 import com.nisr.sauservices.ui.viewmodel.CartViewModel
-import io.github.jan.supabase.auth.auth
+import com.nisr.sauservices.ui.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
     val context = LocalContext.current
+    val profileViewModel: ProfileViewModel = viewModel()
+    val userProfile by profileViewModel.userProfile.collectAsState()
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var userAddress by remember { mutableStateOf("63B, Sector 63") }
+    val userAddress = userProfile?.address?.ifEmpty { "Select Location" } ?: "63B, Sector 63"
     val cartViewModel: CartViewModel = viewModel()
     val cartItems by cartViewModel.dbCartItems.collectAsState()
     val cartCount = cartItems.sumOf { it.quantity }
@@ -52,7 +51,8 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 TextButton(onClick = {
                     sessionManager.logout()
                     navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(0) { inclusive = true } }
+                        popUpTo(0) { inclusive = true }
+                    }
                     showLogoutDialog = false
                 }) {
                     Text("Logout", color = Color.Red)

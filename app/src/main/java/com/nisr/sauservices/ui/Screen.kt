@@ -177,4 +177,22 @@ sealed class Screen(val route: String) {
     object MobilityBooking : Screen("mobility_booking")
     object MobilityRideTracking : Screen("mobility_tracking")
     object MobilitySuccess : Screen("mobility_success")
+
+    // Payment Routes
+    object PaymentMethod : Screen("payment_method/{bookingId}/{customerId}/{partnerId}/{amount}") {
+        fun createRoute(bookingId: String, customerId: String, partnerId: String, amount: Double) = 
+            "payment_method/$bookingId/$customerId/$partnerId/$amount"
+    }
+    object CashSuccess : Screen("cash_success/{paymentId}/{amount}") {
+        fun createRoute(paymentId: String, amount: Double) = "cash_success/$paymentId/$amount"
+    }
+    object CashCollection : Screen("cash_collection/{paymentId}/{bookingId}/{amount}") {
+        fun createRoute(paymentId: String, bookingId: String, amount: Double) = "cash_collection/$paymentId/$bookingId/$amount"
+    }
+    object CustomerOtp : Screen("customer_otp/{paymentId}/{bookingId}/{amount}") {
+        fun createRoute(paymentId: String, bookingId: String, amount: Double) = "customer_otp/$paymentId/$bookingId/$amount"
+    }
+    object PaidSuccess : Screen("paid_success/{amount}") {
+        fun createRoute(amount: Double) = "paid_success/$amount"
+    }
 }
