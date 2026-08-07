@@ -13,6 +13,9 @@ sealed class Screen(val route: String) {
     object EssentialSupplies : Screen("essential_supplies")
     object BookingsModule : Screen("bookings_module")
 
+    // Property & Lifestyle Services (PLS)
+    object PLSMain : Screen("PLS_main")
+
     // Map & Location Routes
     object MapPicker : Screen("map_picker")
     object OrderTracking : Screen("order_tracking/{orderId}") {

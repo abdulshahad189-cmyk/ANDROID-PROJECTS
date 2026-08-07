@@ -17,9 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -33,6 +36,7 @@ import io.github.jan.supabase.auth.auth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
+    val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
     var userAddress by remember { mutableStateOf("63B, Sector 63") }
     val cartViewModel: CartViewModel = viewModel()
@@ -160,7 +164,7 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                IconButton(onClick = { /* Bag action */ }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = { navController.navigate(Screen.MyOrders.route) }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.LocalMall,
                         contentDescription = "Bag",
@@ -186,7 +190,15 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                     }
                 }
 
-                IconButton(onClick = { /* Share action */ }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = { 
+                    val sendIntent = android.content.Intent().apply {
+                        action = android.content.Intent.ACTION_SEND
+                        putExtra(android.content.Intent.EXTRA_TEXT, "Check out SAU Solutions App!")
+                        type = "text/plain"
+                    }
+                    val shareIntent = android.content.Intent.createChooser(sendIntent, null)
+                    context.startActivity(shareIntent)
+                }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.Share,
                         contentDescription = "Share",
