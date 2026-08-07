@@ -23,7 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.ui.theme.Black
 import com.nisr.sauservices.ui.theme.GrayText
-import com.nisr.sauservices.ui.theme.PrimaryAccent
+import com.nisr.sauservices.ui.theme.PrimaryBlue
+import com.nisr.sauservices.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +33,7 @@ fun SearchBarUI(navController: NavController) {
     var isFocused by remember { mutableStateOf(false) }
     
     val elevation by animateDpAsState(
-        targetValue = if (isFocused) 6.dp else 4.dp,
+        targetValue = if (isFocused) 4.dp else 2.dp,
         animationSpec = tween(durationMillis = 200)
     )
     
@@ -41,7 +42,7 @@ fun SearchBarUI(navController: NavController) {
             .fillMaxWidth()
             .height(60.dp)
             .shadow(elevation, RoundedCornerShape(18.dp))
-            .background(Color.White, RoundedCornerShape(18.dp))
+            .background(White, RoundedCornerShape(18.dp))
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -52,7 +53,7 @@ fun SearchBarUI(navController: NavController) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
-                tint = PrimaryAccent,
+                tint = PrimaryBlue,
                 modifier = Modifier.size(24.dp)
             )
             
@@ -61,7 +62,7 @@ fun SearchBarUI(navController: NavController) {
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        text = "Search for Electrician, Cleaning, Salon...",
+                        text = "Search for \"Electrician, Cleaning, Salon...\"",
                         color = GrayText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal
@@ -76,7 +77,7 @@ fun SearchBarUI(navController: NavController) {
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = PrimaryAccent,
+                    cursorColor = PrimaryBlue,
                     focusedTextColor = Black,
                     unfocusedTextColor = Black
                 ),

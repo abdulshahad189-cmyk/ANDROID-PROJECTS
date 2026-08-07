@@ -25,7 +25,8 @@ import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.Black
 import com.nisr.sauservices.ui.theme.GrayText
-import com.nisr.sauservices.ui.theme.PrimaryAccent
+import com.nisr.sauservices.ui.theme.PrimaryBlue
+import com.nisr.sauservices.ui.theme.White
 
 data class PopularService(
     val id: String,
@@ -44,44 +45,28 @@ fun PopularServicesSection(navController: NavController) {
         PopularService("hc2", "Bathroom Cleaning", R.drawable.bathroom_cleaning, "₹399", "4.8", "home_cleaning", "clean_room")
     )
 
-    Column(modifier = Modifier.padding(vertical = 24.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Popular Near You",
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Text(
+            "Popular Near You",
+            style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
+                fontSize = 18.sp,
                 color = Black
-            )
-            
-            // Pager indicator dots
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(PrimaryAccent))
-                Spacer(Modifier.width(4.dp))
-                Box(Modifier.size(6.dp).clip(RoundedCornerShape(50)).background(Color.LightGray))
-                Spacer(Modifier.width(4.dp))
-                Box(Modifier.size(6.dp).clip(RoundedCornerShape(50)).background(Color.LightGray))
-            }
-        }
-
-        Spacer(Modifier.height(18.dp))
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
+            contentPadding = PaddingValues(horizontal = 0.dp)
         ) {
             items(list) { item ->
                 Card(
                     modifier = Modifier
                         .width(280.dp)
-                        .shadow(8.dp, RoundedCornerShape(18.dp)),
+                        .shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column {
@@ -103,15 +88,19 @@ fun PopularServicesSection(navController: NavController) {
                             ) {
                                 Text(
                                     item.name,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = Black
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = Black
+                                    )
                                 )
                                 Text(
                                     item.price,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 16.sp,
-                                    color = Black
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 15.sp,
+                                        color = PrimaryBlue
+                                    )
                                 )
                             }
                             
@@ -127,14 +116,16 @@ fun PopularServicesSection(navController: NavController) {
                                         Icons.Default.Star,
                                         null,
                                         tint = Color(0xFFFFB300),
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
                                         item.rating,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = GrayText
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = GrayText
+                                        )
                                     )
                                 }
                                 
@@ -142,12 +133,12 @@ fun PopularServicesSection(navController: NavController) {
                                     onClick = {
                                         navController.navigate(Screen.ResidentialServiceList.createRoute(item.categoryId, item.subcategoryId))
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.height(36.dp).width(100.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.height(34.dp).width(96.dp),
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
-                                    Text("Book Now", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Book Now", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = White)
                                 }
                             }
                         }

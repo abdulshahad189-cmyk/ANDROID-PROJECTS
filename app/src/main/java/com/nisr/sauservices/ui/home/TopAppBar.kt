@@ -66,14 +66,15 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = AppBackground,
+        color = White,
+        shadowElevation = 0.5.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Left: Logo & Text
             Row(
@@ -82,28 +83,32 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Black),
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(PrimaryBlue),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("S", color = White, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp)
+                    Text("S", color = White, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 Column(verticalArrangement = Arrangement.Center) {
                     Text(
                         "SAU",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Black,
-                        lineHeight = 18.sp
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
+                            color = Black,
+                            lineHeight = 17.sp
+                        )
                     )
                     Text(
                         "Solutions",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = GrayText,
-                        lineHeight = 10.sp
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GrayText,
+                            lineHeight = 9.sp
+                        )
                     )
                 }
             }
@@ -112,10 +117,11 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
             Surface(
                 modifier = Modifier
                     .weight(1f)
-                    .height(38.dp)
+                    .padding(horizontal = 8.dp)
+                    .height(36.dp)
                     .clip(RoundedCornerShape(50))
                     .clickable { navController.navigate(Screen.MapPicker.route) },
-                color = SecondaryBlue.copy(alpha = 0.6f)
+                color = PrimaryLight.copy(alpha = 0.4f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp),
@@ -125,24 +131,26 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                     Icon(
                         imageVector = Icons.Default.LocationOn, 
                         contentDescription = null,
-                        tint = PrimaryAccent,
-                        modifier = Modifier.size(16.dp)
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = userAddress,
-                        fontSize = 11.sp,
-                        color = Black,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = 10.sp,
+                            color = Black,
+                            fontWeight = FontWeight.SemiBold
+                        ),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.SemiBold
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(Modifier.width(2.dp))
                     Icon(
                         Icons.Default.KeyboardArrowDown,
                         null,
                         tint = Black,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -150,22 +158,22 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
             // Right: Action Icons
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                IconButton(onClick = { /* Bag action */ }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { /* Bag action */ }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.LocalMall,
                         contentDescription = "Bag",
                         tint = Black,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
-                IconButton(onClick = { navController.navigate(Screen.Cart.route) }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { navController.navigate(Screen.Cart.route) }, modifier = Modifier.size(32.dp)) {
                     BadgedBox(badge = {
                         if (cartCount > 0) {
-                            Badge(containerColor = PrimaryAccent) {
-                                Text(cartCount.toString(), color = White, fontSize = 9.sp)
+                            Badge(containerColor = PrimaryBlue) {
+                                Text(cartCount.toString(), color = White, fontSize = 8.sp)
                             }
                         }
                     }) {
@@ -173,17 +181,17 @@ fun TopAppBarUI(navController: NavController, sessionManager: SessionManager) {
                             Icons.Outlined.ShoppingCart,
                             contentDescription = "Cart",
                             tint = Black,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
 
-                IconButton(onClick = { /* Share action */ }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { /* Share action */ }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.Share,
                         contentDescription = "Share",
                         tint = Black,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,17 +18,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nisr.sauservices.ui.theme.Black
 import com.nisr.sauservices.ui.theme.GrayText
+import com.nisr.sauservices.ui.theme.LightGreen
 import com.nisr.sauservices.ui.theme.SuccessGreen
 
 @Composable
 fun OfferBanner(){
-    val bannerGreen = Color(0xFFE8F5E9)
-
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(bannerGreen)
+            .clip(RoundedCornerShape(16.dp))
+            .background(LightGreen)
             .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ){
@@ -43,15 +43,19 @@ fun OfferBanner(){
         Column{
             Text(
                 "Flat 20% OFF on First Booking", 
-                fontWeight = FontWeight.Bold, 
-                fontSize = 15.sp,
-                color = Black
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 15.sp,
+                    color = Black
+                )
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 "Use Code: SAU20", 
-                fontSize = 13.sp, 
-                color = GrayText
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 13.sp, 
+                    color = GrayText
+                )
             )
         }
     }

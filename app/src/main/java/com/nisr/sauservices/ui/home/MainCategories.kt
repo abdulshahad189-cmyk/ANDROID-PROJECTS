@@ -1,25 +1,18 @@
 package com.nisr.sauservices.ui.home
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -32,12 +25,14 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.LightGray
 import com.nisr.sauservices.ui.theme.PrimaryBlue
-import kotlinx.coroutines.delay
+import com.nisr.sauservices.ui.theme.White
 
 data class CategoryItem(
     val name: String, 
     val route: String = "",
+    val description: String = "",
     @DrawableRes val imageRes: Int? = null
 )
 
@@ -54,30 +49,28 @@ fun CategoriesGrid(
     onMobilityClick: () -> Unit = {}
 ) {
     val allCategories = listOf(
-        CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, R.drawable.essential_supplies),
-        CategoryItem("Bookings", Screen.BookingsModule.route, R.drawable.bookings),
-        CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, R.drawable.residential_services),
-        CategoryItem("Property &\nLifestyle", "", R.drawable.property_lifestyle),
-        CategoryItem("Home\nEssentials", "", R.drawable.home_essentials),
-        CategoryItem("Food &\nBeverages", "", R.drawable.food_beverages),
-        CategoryItem("Education\nServices", "", R.drawable.education_services),
-        CategoryItem("Business &\nProfessional", "", R.drawable.business_professional),
-        CategoryItem("Home &\nLifestyle", "", R.drawable.home_lifestyle),
-        CategoryItem("Tech\nServices", "", R.drawable.tech_services),
-        CategoryItem("Men's\nGrooming", "", R.drawable.mens_grooming),
-        CategoryItem("Women's\nBeauty", "", R.drawable.womens_beauty),
-        CategoryItem("Healthcare &\nPharmacy", "", R.drawable.healthcare_pharmacy),
-        CategoryItem("Mechanic\nServices", "", R.drawable.mechanic_services),
-        CategoryItem("Mobility\nServices", "", R.drawable.mobility_services)
+        CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, "Daily essentials", R.drawable.essential_supplies),
+        CategoryItem("Bookings", Screen.BookingsModule.route, "All your bookings", R.drawable.bookings),
+        CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, "Home services", R.drawable.residential_services),
+        CategoryItem("Property &\nLifestyle", "", "Premium lifestyle", R.drawable.property_lifestyle),
+        CategoryItem("Home\nEssentials", "", "Home maintenance", R.drawable.home_essentials),
+        CategoryItem("Food &\nBeverages", "", "Food & drinks", R.drawable.food_beverages),
+        CategoryItem("Education\nServices", "", "Learn & grow", R.drawable.education_services),
+        CategoryItem("Business &\nProfessional", "", "Business services", R.drawable.business_professional),
+        CategoryItem("Home &\nLifestyle", "", "Lifestyle needs", R.drawable.home_lifestyle),
+        CategoryItem("Tech\nServices", "", "Tech solutions", R.drawable.tech_services),
+        CategoryItem("Men's\nGrooming", "", "Grooming needs", R.drawable.mens_grooming),
+        CategoryItem("Women's\nBeauty", "", "Beauty services", R.drawable.womens_beauty),
+        CategoryItem("Healthcare &\nPharmacy", "", "Health care", R.drawable.healthcare_pharmacy)
     )
 
     val homeCategories = listOf(
-        allCategories[0], // Essential Supplies
-        allCategories[1], // Bookings
-        allCategories[2], // Residential Services
-        allCategories[3], // Property & Lifestyle
-        allCategories[4], // Home Essentials
-        CategoryItem("More\nServices", Screen.Categories.route, null)
+        allCategories[0],
+        allCategories[1],
+        allCategories[2],
+        allCategories[3],
+        allCategories[4],
+        CategoryItem("More\nServices", Screen.Categories.route, "Explore more", null)
     )
 
     val displayList = if (showAll) allCategories else homeCategories
@@ -87,17 +80,22 @@ fun CategoriesGrid(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+                    .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom
             ) {
                 Text(
                     "Categories",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 17.sp,
-                    color = Black
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Black
+                    )
                 )
-                TextButton(onClick = { navController.navigate(Screen.Categories.route) }) {
+                TextButton(
+                    onClick = { navController.navigate(Screen.Categories.route) },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
                     Text("See all", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -105,35 +103,18 @@ fun CategoriesGrid(
 
         val rows = displayList.chunked(3)
         
-        rows.forEachIndexed { rowIndex, rowItems ->
+        rows.forEach { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                rowItems.forEachIndexed { colIndex, item ->
-                    val index = rowIndex * 3 + colIndex
+                rowItems.forEach { item ->
                     CategoryCard(
                         item = item, 
-                        index = index,
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            when (item.name.replace("\n", " ")) {
-                                "Essential Supplies" -> navController.navigate(Screen.EssentialSupplies.route)
-                                "Bookings" -> navController.navigate(Screen.BookingsModule.route)
-                                "Mechanic Services" -> onMechanicClick()
-                                "Mobility Services" -> onMobilityClick()
-                                "Residential Services" -> navController.navigate(Screen.ResidentialCategories.route)
-                                "More Services" -> navController.navigate(Screen.Categories.route)
-                                "Property & Lifestyle" -> onLifestyleClick()
-                                "Home Essentials" -> onHomeEssentialsClick()
-                                "Food & Beverages" -> { /* Navigate to Food */ }
-                                "Education Services" -> onEducationClick()
-                                "Business & Professional" -> onBusinessClick()
-                                "Home & Lifestyle" -> onLifestyleClick()
-                                "Tech Services" -> onTechClick()
-                                "Men's Grooming" -> { /* Navigate to Mens */ }
-                                "Women's Beauty" -> { /* Navigate to Womens */ }
-                                "Healthcare & Pharmacy" -> { /* Navigate to Healthcare */ }
+                            if (item.route.isNotEmpty()) {
+                                navController.navigate(item.route)
                             }
                         }
                     )
@@ -144,92 +125,70 @@ fun CategoriesGrid(
                     }
                 }
             }
-            Spacer(Modifier.height(24.dp)) // Spacing between rows
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun CategoryCard(item: CategoryItem, index: Int, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = tween(durationMillis = 120)
-    )
-
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(index * 25L) // Staggered entrance
-        visible = true
-    }
-
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(tween(220)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(220)),
+fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
         modifier = modifier
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Surface(
             modifier = Modifier
-                .scale(scale)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null, // Removed default ripple for cleaner look
-                    onClick = onClick
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .size(86.dp), // Adjusted size to match reference
+            shape = RoundedCornerShape(20.dp),
+            color = White,
+            shadowElevation = 2.dp
         ) {
-            // Small neat square box for image/icon
-            Surface(
-                modifier = Modifier.size(76.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White,
-                shadowElevation = 4.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(4.dp),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFF9FAFB)
                 ) {
-                    // Inner light gray background for the image
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFF8F9FA)
-                    ) {
+                    if (item.imageRes != null) {
+                        Image(
+                            painter = painterResource(id = item.imageRes),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
                         Box(contentAlignment = Alignment.Center) {
-                            if (item.imageRes != null) {
-                                Image(
-                                    painter = painterResource(id = item.imageRes),
-                                    contentDescription = item.name,
-                                    modifier = Modifier.fillMaxSize().padding(6.dp),
-                                    contentScale = ContentScale.Fit
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Rounded.Apps,
-                                    contentDescription = item.name,
-                                    tint = PrimaryBlue,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Rounded.Apps,
+                                contentDescription = null,
+                                tint = Color(0xFFE91E63), // Pinkish like "More Services" icon
+                                modifier = Modifier.size(32.dp)
+                            )
                         }
                     }
                 }
             }
-
-            Spacer(Modifier.height(10.dp))
-
-            Text(
-                text = item.name,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                lineHeight = 14.sp,
-                color = Black,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
         }
+
+        Spacer(Modifier.height(10.dp))
+
+        Text(
+            text = item.name,
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 12.sp,
+                color = Black,
+                lineHeight = 14.sp
+            ),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

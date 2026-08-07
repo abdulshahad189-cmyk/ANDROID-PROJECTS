@@ -1,8 +1,7 @@
 package com.nisr.sauservices.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Assignment
@@ -12,10 +11,7 @@ import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,8 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.PrimaryAccent
-import com.nisr.sauservices.ui.theme.InactiveIcon
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.GrayText
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 import com.nisr.sauservices.ui.theme.White
 
 @Composable
@@ -36,13 +33,15 @@ fun BottomNavBar(
     
     Surface(
         color = White,
-        shadowElevation = 12.dp,
-        modifier = Modifier.shadow(12.dp)
+        tonalElevation = 0.dp,
+        shadowElevation = 8.dp
     ) {
         NavigationBar(
             containerColor = White,
             tonalElevation = 0.dp,
-            modifier = Modifier.height(72.dp)
+            modifier = Modifier
+                .height(72.dp)
+                .navigationBarsPadding()
         ) {
             val items = listOf(
                 NavigationItem("Home", Screen.Home.route, Icons.Outlined.Home),
@@ -55,11 +54,6 @@ fun BottomNavBar(
             items.forEach { item ->
                 val isSelected = currentRoute == item.route || (item.route == Screen.OrderTracking.route && currentRoute?.startsWith("order_tracking") == true)
                 
-                val iconScale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.1f else 1f,
-                    animationSpec = tween(180)
-                )
-
                 NavigationBarItem(
                     selected = isSelected,
                     onClick = {
@@ -74,21 +68,29 @@ fun BottomNavBar(
                         }
                     },
                     icon = {
-                        Icon(item.icon, null, modifier = Modifier.size(26.dp).scale(iconScale))
+                        Icon(
+                            item.icon, 
+                            null, 
+                            modifier = Modifier.size(24.dp)
+                        )
                     },
                     label = { 
                         Text(
                             item.title, 
-                            fontSize = 10.sp, 
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp, 
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            ),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     },
                     alwaysShowLabel = true,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = PrimaryAccent,
-                        selectedTextColor = PrimaryAccent,
-                        unselectedIconColor = InactiveIcon,
-                        unselectedTextColor = InactiveIcon,
+                        selectedIconColor = PrimaryBlue,
+                        selectedTextColor = PrimaryBlue,
+                        unselectedIconColor = GrayText,
+                        unselectedTextColor = GrayText,
                         indicatorColor = Color.Transparent
                     )
                 )

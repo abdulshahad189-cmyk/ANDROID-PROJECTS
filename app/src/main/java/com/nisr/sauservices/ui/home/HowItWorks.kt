@@ -8,12 +8,12 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nisr.sauservices.ui.theme.Black
 import com.nisr.sauservices.ui.theme.GrayText
-import com.nisr.sauservices.ui.theme.PrimaryAccent
+import com.nisr.sauservices.ui.theme.LightGray
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 
 data class HowItWorksItem(val name: String, val icon: ImageVector)
 
@@ -29,18 +30,20 @@ data class HowItWorksItem(val name: String, val icon: ImageVector)
 fun HowItWorks() {
 
     val list = listOf(
-        HowItWorksItem("Choose Service", Icons.Outlined.EditCalendar),
-        HowItWorksItem("Select Date & Time", Icons.Outlined.CalendarMonth),
-        HowItWorksItem("Get Professional at Home", Icons.Outlined.CheckCircle)
+        HowItWorksItem("Choose\nService", Icons.Outlined.EditCalendar),
+        HowItWorksItem("Select Date\n& Time", Icons.Outlined.CalendarMonth),
+        HowItWorksItem("Get Pro\nat Home", Icons.Outlined.CheckCircle)
     )
 
-    Column(modifier = Modifier.padding(top = 28.dp, bottom = 28.dp)) {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
             "How It Works",
-            fontWeight = FontWeight.Bold,
-            fontSize = 17.sp,
-            color = Black,
-            modifier = Modifier.padding(start = 4.dp, bottom = 20.dp)
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Black
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         Row(
@@ -54,28 +57,30 @@ fun HowItWorks() {
                 ) {
                     Box(
                         Modifier
-                            .size(76.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(PrimaryAccent.copy(alpha = 0.08f)), // Very soft primary accent background
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(LightGray),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             item.icon, 
                             null, 
-                            tint = PrimaryAccent, 
-                            modifier = Modifier.size(36.dp)
+                            tint = PrimaryBlue, 
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(8.dp))
                     
                     Text(
                         item.name, 
-                        fontSize = 12.sp, 
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 11.sp, 
+                            fontWeight = FontWeight.Medium,
+                            color = GrayText
+                        ),
                         textAlign = TextAlign.Center,
-                        lineHeight = 16.sp,
-                        color = GrayText
+                        lineHeight = 14.sp
                     )
                 }
             }
