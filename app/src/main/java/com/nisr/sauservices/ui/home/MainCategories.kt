@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.Black
-import com.nisr.sauservices.ui.theme.LightGray
 import com.nisr.sauservices.ui.theme.PrimaryBlue
 import com.nisr.sauservices.ui.theme.White
 
@@ -61,7 +60,9 @@ fun CategoriesGrid(
         CategoryItem("Tech\nServices", "", "Tech solutions", R.drawable.tech_services),
         CategoryItem("Men's\nGrooming", "", "Grooming needs", R.drawable.mens_grooming),
         CategoryItem("Women's\nBeauty", "", "Beauty services", R.drawable.womens_beauty),
-        CategoryItem("Healthcare &\nPharmacy", "", "Health care", R.drawable.healthcare_pharmacy)
+        CategoryItem("Healthcare &\nPharmacy", "", "Health care", R.drawable.healthcare_pharmacy),
+        CategoryItem("Mechanic\nServices", "", "Vehicle services", R.drawable.mechanic_services),
+        CategoryItem("Mobility\nServices", "", "Travel with ease", R.drawable.mobility_services)
     )
 
     val homeCategories = listOf(
@@ -70,6 +71,8 @@ fun CategoriesGrid(
         allCategories[2],
         allCategories[3],
         allCategories[4],
+        allCategories[13], // Mechanic Services
+        allCategories[14], // Mobility Services
         CategoryItem("More\nServices", Screen.Categories.route, "Explore more", null)
     )
 
@@ -113,8 +116,20 @@ fun CategoriesGrid(
                         item = item, 
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            if (item.route.isNotEmpty()) {
-                                navController.navigate(item.route)
+                            when (item.name.replace("\n", " ")) {
+                                "Essential Supplies" -> navController.navigate(item.route)
+                                "Bookings" -> navController.navigate(item.route)
+                                "Residential Services" -> navController.navigate(item.route)
+                                "Property & Lifestyle" -> onLifestyleClick()
+                                "Home Essentials" -> onHomeEssentialsClick()
+                                "Food & Beverages" -> { /* Handle food */ }
+                                "Education Services" -> onEducationClick()
+                                "Business & Professional" -> onBusinessClick()
+                                "Home & Lifestyle" -> onLifestyleClick()
+                                "Tech Services" -> onTechClick()
+                                "Mechanic Services" -> onMechanicClick()
+                                "Mobility Services" -> onMobilityClick()
+                                "More Services" -> navController.navigate(item.route)
                             }
                         }
                     )
@@ -139,7 +154,7 @@ fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () 
     ) {
         Surface(
             modifier = Modifier
-                .size(86.dp), // Adjusted size to match reference
+                .size(86.dp),
             shape = RoundedCornerShape(20.dp),
             color = White,
             shadowElevation = 2.dp
@@ -167,7 +182,7 @@ fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () 
                             Icon(
                                 imageVector = Icons.Rounded.Apps,
                                 contentDescription = null,
-                                tint = Color(0xFFE91E63), // Pinkish like "More Services" icon
+                                tint = Color(0xFFE91E63),
                                 modifier = Modifier.size(32.dp)
                             )
                         }
