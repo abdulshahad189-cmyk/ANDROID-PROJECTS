@@ -2,10 +2,11 @@ package com.nisr.sauservices.ui.location
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,22 +30,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.nisr.sauservices.ui.components.SauColors
+import com.nisr.sauservices.ui.components.SauButton
 import com.nisr.sauservices.ui.viewmodel.LocationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerScreen(
     navController: NavController,
-    viewModel: LocationViewModel = viewModel()
+    viewModel: LocationViewModel
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
+    
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(uiState.centerLocation, 15f)
     }
@@ -70,6 +73,7 @@ fun LocationPickerScreen(
         }
     )
 
+    // Initial permission check and location fetch
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
             launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -78,24 +82,32 @@ fun LocationPickerScreen(
         }
     }
 
+    // Sync VM center location to Camera
+    LaunchedEffect(uiState.centerLocation) {
+        cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(uiState.centerLocation, 15f))
+    }
+
+    // Sync Camera movement back to VM (Debounced inside VM)
     LaunchedEffect(cameraPositionState.isMoving) {
         if (!cameraPositionState.isMoving) {
             viewModel.updateCenterLocation(cameraPositionState.position.target, context)
         }
     }
 
-    // Update camera when centerLocation changes in VM (e.g., from GPS or Search)
-    LaunchedEffect(uiState.centerLocation) {
-        cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(uiState.centerLocation, 15f))
+    // Handle Errors
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Set Delivery Location", fontWeight = FontWeight.Bold) },
+                title = { Text("Set Delivery Location", fontWeight = FontWeight.Bold, color = SauColors.TextDark) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = SauColors.TextDark)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -110,41 +122,41 @@ fun LocationPickerScreen(
                 uiSettings = MapUiSettings(myLocationButtonEnabled = false, zoomControlsEnabled = false)
             )
 
-            // Center Pin
+            // Center Pin (Stationary)
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        painter = painterResource(id = android.R.drawable.ic_menu_mylocation),
+                        imageVector = Icons.Default.LocationOn,
                         contentDescription = "Pin",
-                        tint = Color.Red,
-                        modifier = Modifier.size(44.dp)
+                        tint = SauColors.Primary,
+                        modifier = Modifier.size(48.dp)
                     )
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp)) // Visual offset to align pin tip with center
                 }
             }
 
-            // Search Bar
+            // Search Bar (Floating)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(8.dp),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 TextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Search for area, street name...") },
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
+                    placeholder = { Text("Search for area, street name...", color = SauColors.TextGrey) },
+                    leadingIcon = { Icon(Icons.Default.Search, null, tint = SauColors.Primary) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { 
                                 viewModel.searchLocation(searchQuery, context)
                             }) {
-                                Icon(Icons.Default.MyLocation, null, tint = Color(0xFFE91E63))
+                                Icon(Icons.Default.MyLocation, null, tint = SauColors.Primary)
                             }
                         }
                     },
@@ -156,7 +168,8 @@ fun LocationPickerScreen(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = SauColors.TextDark
                     ),
                     singleLine = true
                 )
@@ -170,43 +183,44 @@ fun LocationPickerScreen(
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 240.dp, end = 16.dp),
+                    .padding(bottom = 260.dp, end = 16.dp),
                 containerColor = Color.White,
-                contentColor = Color(0xFFE91E63)
+                contentColor = SauColors.Primary
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "My Location")
             }
 
-            // Bottom Confirm Sheet
+            // Bottom Confirmation Sheet
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                shadowElevation = 16.dp,
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                shadowElevation = 24.dp,
                 color = Color.White
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        "CONFIRM DELIVERY LOCATION", 
+                        text = "CONFIRM DELIVERY LOCATION", 
                         style = MaterialTheme.typography.labelMedium, 
-                        color = Color.Gray,
-                        letterSpacing = 1.sp
+                        color = SauColors.TextGrey,
+                        letterSpacing = 1.2.sp
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFFFEBF0)),
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(SauColors.Primary.copy(alpha = 0.1f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.LocationOn, 
+                                imageVector = Icons.Default.LocationOn, 
                                 contentDescription = null, 
-                                tint = Color(0xFFE91E63), 
-                                modifier = Modifier.size(24.dp)
+                                tint = SauColors.Primary, 
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -215,11 +229,11 @@ fun LocationPickerScreen(
                                 text = if (uiState.isFetchingAddress) "Locating..." else uiState.landmark.ifEmpty { "Pinned Location" }, 
                                 fontWeight = FontWeight.ExtraBold, 
                                 fontSize = 18.sp,
-                                color = Color.Black
+                                color = SauColors.TextDark
                             )
                             Text(
                                 text = if (uiState.isFetchingAddress) "Updating address..." else uiState.address, 
-                                color = Color.Gray, 
+                                color = SauColors.TextGrey, 
                                 fontSize = 14.sp, 
                                 maxLines = 2,
                                 lineHeight = 18.sp,
@@ -227,26 +241,18 @@ fun LocationPickerScreen(
                             )
                         }
                     }
+                    
                     Spacer(modifier = Modifier.height(32.dp))
-                    Button(
+                    
+                    SauButton(
+                        text = "Confirm Location",
+                        isLoading = uiState.isFetchingAddress,
                         onClick = { 
                             viewModel.confirmLocation { 
                                 navController.popBackStack() 
                             } 
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
-                    ) {
-                        Text(
-                            "Confirm Location", 
-                            fontSize = 16.sp, 
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }

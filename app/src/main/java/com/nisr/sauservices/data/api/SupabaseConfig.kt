@@ -8,9 +8,8 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 
 object SupabaseConfig {
-    // Replace with your actual Supabase URL and Anon Key
-    const val SUPABASE_URL = "https://your-project-id.supabase.co"
-    const val SUPABASE_ANON_KEY = "your-anon-key"
+    const val SUPABASE_URL = "https://vpadhrxammaxitlcrauj.supabase.co"
+    const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwYWRocnhhbW1heGl0bGNyYXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNjcwNzYsImV4cCI6MjEwMDY0MzA3Nn0.C22riAm5-qsWoxB15gBMZ48tck2sUbqetS2KGw2uDMM"
 
     val client: SupabaseClient = createSupabaseClient(
         supabaseUrl = SUPABASE_URL,

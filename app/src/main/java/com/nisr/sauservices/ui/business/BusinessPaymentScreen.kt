@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import java.util.Locale
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.theme.LightPink
@@ -94,7 +95,7 @@ fun BusinessPaymentScreen(navController: NavController, viewModel: BusinessViewM
                 ) {
                     Text("Total to Pay", fontWeight = FontWeight.Medium)
                     val totalWithTax = viewModel.getTotalPrice() * 1.18
-                    Text("₹${String.format("%.2f", totalWithTax)}", fontWeight = FontWeight.ExtraBold, color = PinkPrimary, fontSize = 18.sp)
+                    Text("₹${String.format(Locale.getDefault(), "%.2f", totalWithTax)}", fontWeight = FontWeight.ExtraBold, color = PinkPrimary, fontSize = 18.sp)
                 }
             }
         }

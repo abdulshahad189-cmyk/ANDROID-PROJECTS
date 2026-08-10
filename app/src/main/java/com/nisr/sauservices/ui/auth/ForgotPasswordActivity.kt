@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
@@ -21,15 +22,15 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#F5F7F6"))
+            setBackgroundColor("#F5F7F6".toColorInt())
             setPadding(48, 48, 48, 48)
             gravity = Gravity.CENTER
         }
 
         val title = TextView(this).apply {
-            text = "Reset Password"
+            text = "Reset Password" // TODO: Use string resources
             textSize = 28f
-            setTextColor(Color.parseColor("#2E7D6B"))
+            setTextColor("#2E7D6B".toColorInt())
             typeface = Typeface.DEFAULT_BOLD
             setPadding(0, 0, 0, 64)
             gravity = Gravity.CENTER
@@ -61,7 +62,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                 topMargin = 48
             }
             cornerRadius = (24 * resources.displayMetrics.density).toInt()
-            setBackgroundColor(Color.parseColor("#2E7D6B"))
+            setBackgroundColor("#2E7D6B".toColorInt())
             setTextColor(Color.WHITE)
         }
 

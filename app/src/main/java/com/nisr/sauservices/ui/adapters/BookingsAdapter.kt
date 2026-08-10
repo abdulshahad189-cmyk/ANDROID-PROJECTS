@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -51,7 +52,7 @@ class BookingsAdapter(
         val serviceTxt = TextView(context).apply { 
             id = SERVICE_ID
             textSize = 16f
-            setTextColor(Color.parseColor("#2E7D6B")) 
+            setTextColor("#2E7D6B".toColorInt()) 
         }
         val addressTxt = TextView(context).apply { 
             id = ADDRESS_ID
@@ -70,7 +71,7 @@ class BookingsAdapter(
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply { gravity = Gravity.END; topMargin = 16 }
             cornerRadius = (24 * context.resources.displayMetrics.density).toInt()
-            setBackgroundColor(Color.parseColor("#2E7D6B"))
+            setBackgroundColor("#2E7D6B".toColorInt())
         }
 
         layout.addView(nameTxt)
@@ -88,7 +89,7 @@ class BookingsAdapter(
         holder.nameText.text = booking.customerName
         holder.serviceText.text = booking.serviceType
         holder.addressText.text = booking.address
-        holder.timeText.text = "Slot: ${booking.timeSlot}"
+        holder.timeText.text = "Slot: ${booking.timeSlot}" // TODO: Use string resources
         holder.statusButton.text = booking.status
 
         holder.statusButton.setOnClickListener {
@@ -110,7 +111,7 @@ class BookingsAdapter(
 
     fun updateData(newBookings: List<Booking>) {
         bookings = newBookings
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, bookings.size)
     }
 
     companion object {

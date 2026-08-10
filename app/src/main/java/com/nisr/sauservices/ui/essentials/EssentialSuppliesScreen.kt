@@ -1,8 +1,12 @@
 package com.nisr.sauservices.ui.essentials
 
 import android.widget.Toast
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -17,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +43,8 @@ fun EssentialSuppliesScreen(navController: NavController, viewModel: CartViewMod
     val categories = NewModulesData.essentialSupplies
     var selectedCategory by remember { mutableStateOf<SupplyCategory?>(null) }
     val cartItems by viewModel.dbCartItems.collectAsState()
+    
+    val animateState = remember { MutableTransitionState(false) }.apply { targetState = true }
 
     Scaffold(
         topBar = {
@@ -66,30 +73,41 @@ fun EssentialSuppliesScreen(navController: NavController, viewModel: CartViewMod
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize().background(Color(0xFFF8F8F8))) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            AnimatedVisibility(
+                visibleState = animateState,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { 40 })
             ) {
-                items(categories) { category ->
-                    CategoryCardSmall(category) {
-                        selectedCategory = category
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(categories) { category ->
+                        CategoryCardSmall(category) {
+                            selectedCategory = category
+                        }
                     }
                 }
             }
 
             if (cartItems.isNotEmpty()) {
+                val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
+                val scale by animateFloatAsState(if (isPressed) 0.96f else 1f)
+
                 Button(
                     onClick = { navController.navigate(Screen.Cart.route) },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp)
+                        .scale(scale),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary),
+                    interactionSource = interactionSource
                 ) {
                     Text("Go to Cart & Checkout", fontWeight = FontWeight.Bold)
                 }
@@ -119,14 +137,27 @@ fun EssentialSuppliesScreen(navController: NavController, viewModel: CartViewMod
 
 @Composable
 fun CategoryCardSmall(category: SupplyCategory, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
+        label = "cardScale"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .clickable { onClick() },
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().padding(12.dp)) {
             Text(
@@ -149,42 +180,55 @@ fun SubcategoryPopupSmall(
 ) {
     val context = LocalContext.current
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(vertical = 24.dp)
+        val animateState = remember { MutableTransitionState(false) }.apply { targetState = true }
+        
+        AnimatedVisibility(
+            visibleState = animateState,
+            enter = scaleIn(initialScale = 0.9f) + fadeIn(),
+            exit = scaleOut(targetScale = 0.9f) + fadeOut()
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = category.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
-                
-                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
-                    items(category.subcategories) { sub ->
-                        SubcategoryItemSmall(sub) {
-                            onAddToCart(sub)
-                            Toast.makeText(context, "${sub.name} added to cart", Toast.LENGTH_SHORT).show()
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(vertical = 24.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = category.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+                    
+                    LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                        items(category.subcategories) { sub ->
+                            SubcategoryItemSmall(sub) {
+                                onAddToCart(sub)
+                                Toast.makeText(context, "${sub.name} added to cart", Toast.LENGTH_SHORT).show()
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF0F0F0))
                         }
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF0F0F0))
                     }
-                }
-                
-                Spacer(Modifier.height(12.dp))
-                
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
-                ) {
-                    Text("Close", fontWeight = FontWeight.Bold)
+                    
+                    Spacer(Modifier.height(12.dp))
+                    
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f)
+
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth().height(48.dp).scale(scale),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary),
+                        interactionSource = interactionSource
+                    ) {
+                        Text("Close", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
@@ -202,12 +246,18 @@ fun SubcategoryItemSmall(sub: SupplySubcategory, onAdd: () -> Unit) {
             Text(text = sub.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.Black)
             Text(text = sub.priceRange, color = Color.Gray, fontSize = 13.sp)
         }
+        
+        val interactionSource = remember { MutableInteractionSource() }
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val scale by animateFloatAsState(if (isPressed) 0.92f else 1f)
+
         Button(
             onClick = onAdd,
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-            modifier = Modifier.height(36.dp)
+            modifier = Modifier.height(36.dp).scale(scale),
+            interactionSource = interactionSource
         ) {
             Text("Add to Cart", fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }

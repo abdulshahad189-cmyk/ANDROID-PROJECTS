@@ -5,24 +5,54 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
+private val SAUColorScheme = lightColorScheme(
+
+    primary = SAUPrimary,
+
+    onPrimary = SAUWhite,
+
+    primaryContainer = SAULightBlue,
+
+    onPrimaryContainer = SAUPrimaryDark,
+
+    secondary = SAUPrimaryLight,
+
+    onSecondary = SAUWhite,
+
+    secondaryContainer = SAUBackgroundSoft,
+
+    onSecondaryContainer = SAUPrimaryDark,
+
+    background = SAUBackground,
+
+    onBackground = SAUText,
+
+    surface = SAUWhite,
+
+    onSurface = SAUText,
+
+    surfaceVariant = SAUBackgroundSoft,
+
+    onSurfaceVariant = SAUTextSecondary,
+
+    outline = SAUBorder,
+
+    error = SAUError,
+
+    onError = SAUWhite
+)
+
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    val colorScheme = lightColorScheme(
-        primary = OrchidPrimary,
-        onPrimary = White,
-        primaryContainer = OrchidLight,
-        onPrimaryContainer = OrchidDark,
-        secondary = OrchidAccent,
-        onSecondary = Black,
-        background = OrchidBackground,
-        onBackground = Black,
-        surface = White,
-        onSurface = Black
-    )
+fun AppTheme(
+    content: @Composable () -> Unit
+) {
 
     MaterialTheme(
-        colorScheme = colorScheme,
+
+        colorScheme = SAUColorScheme,
+
         typography = Typography(),
+
         content = content
     )
 }

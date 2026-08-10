@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -17,10 +18,10 @@ class OrdersAdapter(
 ) : RecyclerView.Adapter<OrdersAdapter.OrderViewHolder>() {
 
     class OrderViewHolder(val cardView: MaterialCardView) : RecyclerView.ViewHolder(cardView) {
-        val idText: TextView = cardView.findViewById(1)
-        val nameText: TextView = cardView.findViewById(2)
-        val amountText: TextView = cardView.findViewById(3)
-        val statusButton: MaterialButton = cardView.findViewById(4)
+        val idText: TextView = cardView.findViewById(ID_TXT_ID)
+        val nameText: TextView = cardView.findViewById(NAME_TXT_ID)
+        val amountText: TextView = cardView.findViewById(AMOUNT_TXT_ID)
+        val statusButton: MaterialButton = cardView.findViewById(BTN_ID)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -40,17 +41,17 @@ class OrdersAdapter(
             orientation = LinearLayout.VERTICAL
         }
 
-        val idTxt = TextView(context).apply { id = 1; textSize = 14f; setTextColor(Color.GRAY) }
-        val nameTxt = TextView(context).apply { id = 2; textSize = 18f; setTextColor(Color.BLACK); setTypeface(null, android.graphics.Typeface.BOLD) }
-        val amountTxt = TextView(context).apply { id = 3; textSize = 16f; setTextColor(Color.DKGRAY) }
+        val idTxt = TextView(context).apply { id = ID_TXT_ID; textSize = 14f; setTextColor(Color.GRAY) }
+        val nameTxt = TextView(context).apply { id = NAME_TXT_ID; textSize = 18f; setTextColor(Color.BLACK); setTypeface(null, android.graphics.Typeface.BOLD) }
+        val amountTxt = TextView(context).apply { id = AMOUNT_TXT_ID; textSize = 16f; setTextColor(Color.DKGRAY) }
         val btn = MaterialButton(context).apply {
-            id = 4
+            id = BTN_ID
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply { gravity = Gravity.END; topMargin = 16 }
             cornerRadius = (24 * context.resources.displayMetrics.density).toInt()
-            setBackgroundColor(Color.parseColor("#2E7D6B"))
+            setBackgroundColor("#2E7D6B".toColorInt())
         }
 
         layout.addView(idTxt)
@@ -64,9 +65,9 @@ class OrdersAdapter(
 
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
         val order = orders[position]
-        holder.idText.text = "Order ID: ${order.orderId}"
+        holder.idText.text = "Order ID: ${order.orderId}" // TODO: Use string resources
         holder.nameText.text = order.customerName
-        holder.amountText.text = "Total: ${order.amount}"
+        holder.amountText.text = "Total: ${order.amount}" // TODO: Use string resources
         holder.statusButton.text = order.status
 
         holder.statusButton.setOnClickListener {
@@ -87,6 +88,13 @@ class OrdersAdapter(
 
     fun updateData(newOrders: List<Order>) {
         orders = newOrders
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, orders.size)
+    }
+
+    companion object {
+        private const val ID_TXT_ID = 1001
+        private const val NAME_TXT_ID = 1002
+        private const val AMOUNT_TXT_ID = 1003
+        private const val BTN_ID = 1004
     }
 }

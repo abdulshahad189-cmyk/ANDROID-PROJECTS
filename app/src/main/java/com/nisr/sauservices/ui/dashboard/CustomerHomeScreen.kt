@@ -5,8 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nisr.sauservices.data.local.SessionManager
@@ -33,24 +33,22 @@ fun CustomerHomeScreen(
     Scaffold(
         topBar = { TopAppBarUI(navController, sessionManager) },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFFFF7FA) // Specific background color
+        containerColor = Color.White
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(16.dp)
         ) {
             HeroBanner(navController)
             
             SearchBarUI(navController)
 
-            Spacer(Modifier.height(8.dp))
-
             QuickServicesRow(navController)
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
             
             CategoriesGrid(
                 navController = navController,
@@ -62,9 +60,9 @@ fun CustomerHomeScreen(
                 onMobilityClick = { showMobilitySheet = true }
             )
 
+            Spacer(Modifier.height(24.dp))
+            
             ValuePropositionsRow()
-
-            Spacer(Modifier.height(20.dp))
 
             PopularServicesSection(navController)
 

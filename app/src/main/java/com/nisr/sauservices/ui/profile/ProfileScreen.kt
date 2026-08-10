@@ -16,17 +16,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
+import com.nisr.sauservices.ui.theme.SoftPeach
 import com.nisr.sauservices.ui.viewmodel.ProfileViewModel
-
-val SoftPeach = Color(0xFFFFE5D9)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +54,8 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
                 ProfileHeaderCard(
                     name = userProfile?.name ?: "Guest User",
                     email = userProfile?.email ?: "guest@example.com",
-                    phone = userProfile?.phone ?: ""
+                    phone = userProfile?.phone ?: "",
+                    profilePicUrl = userProfile?.profilePicUrl
                 )
             }
 
@@ -128,7 +128,7 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
 }
 
 @Composable
-fun ProfileHeaderCard(name: String, email: String, phone: String) {
+fun ProfileHeaderCard(name: String, email: String, phone: String, profilePicUrl: String?) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -146,12 +146,21 @@ fun ProfileHeaderCard(name: String, email: String, phone: String) {
                     .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Outlined.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Gray
-                )
+                if (!profilePicUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = profilePicUrl,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = Color.Gray
+                    )
+                }
             }
             
             Spacer(Modifier.width(20.dp))

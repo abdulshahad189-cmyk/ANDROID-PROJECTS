@@ -27,7 +27,7 @@ import com.nisr.sauservices.ui.viewmodel.BookingsViewModel
 @Composable
 fun BookingsScreen(navController: NavController, viewModel: BookingsViewModel) {
     val bookings by viewModel.bookingsFlow.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) } // 0: Upcoming, 1: Completed
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Upcoming, 1: Completed
 
     Scaffold(
         topBar = {

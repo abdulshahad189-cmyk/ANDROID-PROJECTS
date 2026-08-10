@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 
 class LocationViewModel : ViewModel() {
@@ -34,7 +33,8 @@ class LocationViewModel : ViewModel() {
         val address: String = "Fetching address...",
         val landmark: String = "",
         val isFetchingAddress: Boolean = false,
-        val isLocationConfirmed: Boolean = false
+        val isLocationConfirmed: Boolean = false,
+        val error: String? = null
     )
 
     @SuppressLint("MissingPermission")
@@ -45,11 +45,13 @@ class LocationViewModel : ViewModel() {
                 val latLng = LatLng(it.latitude, it.longitude)
                 updateCenterLocation(latLng, context)
             }
+        }.addOnFailureListener {
+            uiState = uiState.copy(error = "Failed to get current location")
         }
     }
 
     fun updateCenterLocation(latLng: LatLng, context: Context) {
-        uiState = uiState.copy(centerLocation = latLng, isFetchingAddress = true)
+        uiState = uiState.copy(centerLocation = latLng, isFetchingAddress = true, error = null)
         
         geocodeJob?.cancel()
         geocodeJob = viewModelScope.launch(Dispatchers.IO) {
@@ -65,7 +67,7 @@ class LocationViewModel : ViewModel() {
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
-                val fullAddress = address.getAddressLine(0) ?: ""
+                val fullAddress = address.getAddressLine(0)
                 val landmark = address.featureName ?: ""
                 
                 viewModelScope.launch(Dispatchers.Main) {
@@ -75,10 +77,14 @@ class LocationViewModel : ViewModel() {
                         isFetchingAddress = false
                     )
                 }
+            } else {
+                viewModelScope.launch(Dispatchers.Main) {
+                    uiState = uiState.copy(address = "Address not found", isFetchingAddress = false)
+                }
             }
         } catch (e: Exception) {
             viewModelScope.launch(Dispatchers.Main) {
-                uiState = uiState.copy(address = "Error fetching address", isFetchingAddress = false)
+                uiState = uiState.copy(address = "Error fetching address", isFetchingAddress = false, error = e.message)
             }
         }
     }
@@ -96,9 +102,15 @@ class LocationViewModel : ViewModel() {
                     viewModelScope.launch(Dispatchers.Main) {
                         updateCenterLocation(latLng, context)
                     }
+                } else {
+                    viewModelScope.launch(Dispatchers.Main) {
+                        uiState = uiState.copy(error = "Location not found")
+                    }
                 }
             } catch (e: Exception) {
-                // Handle search error
+                viewModelScope.launch(Dispatchers.Main) {
+                    uiState = uiState.copy(error = "Search failed: ${e.message}")
+                }
             }
         }
     }
@@ -111,19 +123,22 @@ class LocationViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    // Update user's location in the 'users' table or a dedicated 'locations' table
-                    postgrest["users"].update({
-                        set("address", uiState.address)
-                        set("latitude", uiState.centerLocation.latitude)
-                        set("longitude", uiState.centerLocation.longitude)
-                    }) {
-                        filter { eq("id", userId) }
-                    }
+                val locationData = mapOf(
+                    "address" to uiState.address,
+                    "latitude" to uiState.centerLocation.latitude,
+                    "longitude" to uiState.centerLocation.longitude,
+                    "last_updated" to System.currentTimeMillis()
+                )
+
+                postgrest["users"].update({
+                    set("selected_location", locationData)
+                }) {
+                    filter { eq("id", userId) }
                 }
+                
                 onSuccess()
             } catch (e: Exception) {
-                // Log error
+                uiState = uiState.copy(error = "Failed to save location: ${e.message}")
             }
         }
     }

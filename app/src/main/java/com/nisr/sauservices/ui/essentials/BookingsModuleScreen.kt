@@ -307,7 +307,7 @@ fun SchedulingPopupSmall(
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay, minute ->
-            selectedTime = String.format("%02d:%02d", hourOfDay, minute)
+            selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute)
         },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
