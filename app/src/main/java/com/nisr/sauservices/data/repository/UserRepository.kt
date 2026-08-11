@@ -2,41 +2,167 @@ package com.nisr.sauservices.data.repository
 
 import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.User
+import io.github.jan.supabase.auth.OtpType
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
+import io.github.jan.supabase.auth.providers.builtin.OTP
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class UserRepository {
-    private val postgrest = SupabaseClient.client.postgrest
+    private val client = SupabaseClient.client
 
-    suspend fun registerUser(user: User): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            postgrest["users"].insert(user)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    fun getCurrentUser() = client.auth.currentSessionOrNull()?.user
 
-    suspend fun getUserProfile(uid: String): Result<User> = withContext(Dispatchers.IO) {
-        try {
-            val user = postgrest["users"].select {
-                filter { eq("id", uid) }
-            }.decodeSingle<User>()
-            Result.success(user)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
-    suspend fun updateProfile(user: User): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            postgrest["users"].update(user) {
-                filter { eq("id", user.id) }
+    suspend fun signIn(email: String, password: String): Result<Unit> {
+        return try {
+            client.auth.signInWith(Email) {
+                this.email = email
+                this.password = password
             }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun signInWithGoogle(idToken: String): Result<Unit> {
+        return try {
+            client.auth.signInWith(IDToken) {
+                this.idToken = idToken
+                this.provider = Google
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signUp(email: String, password: String, userData: Map<String, Any>): Result<Unit> {
+        return try {
+            val authUser = client.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            
+            authUser?.let {
+                val userId = it.id
+                val profileData = userData.toMutableMap()
+                profileData["id"] = userId
+                
+                withContext(Dispatchers.IO) {
+                    client.postgrest["users"].insert(profileData)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun registerUser(user: User): Result<Unit> {
+        return try {
+            withContext(Dispatchers.IO) {
+                client.postgrest["users"].insert(user)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserData(uid: String): Result<Map<String, String>?> {
+        return try {
+            val response = withContext(Dispatchers.IO) {
+                client.postgrest["users"].select(Columns.ALL) {
+                    filter {
+                        eq("id", uid)
+                    }
+                }.decodeSingleOrNull<Map<String, String>>()
+            }
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun saveUserData(uid: String, userData: Map<String, Any>): Result<Unit> {
+        return try {
+            withContext(Dispatchers.IO) {
+                client.postgrest["users"].upsert(userData) {
+                    filter {
+                        eq("id", uid)
+                    }
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendOtp(phone: String): Result<Unit> {
+        return try {
+            client.auth.signInWith(OTP) {
+                this.phone = phone
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun verifyOtp(phone: String, token: String): Result<Unit> {
+        return try {
+            client.auth.verifyPhoneOtp(
+                type = OtpType.Phone.SMS,
+                phone = phone,
+                token = token,
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendPasswordReset(email: String): Result<Unit> {
+        return try {
+            client.auth.resetPasswordForEmail(email)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun verifyPasswordResetOtp(email: String, token: String): Result<Unit> {
+        return try {
+            client.auth.verifyEmailOtp(
+                type = OtpType.Email.RECOVERY,
+                email = email,
+                token = token
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updatePassword(newPassword: String): Result<Unit> {
+        return try {
+            client.auth.updateUser {
+                password = newPassword
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun logout() {
+        client.auth.signOut()
     }
 }

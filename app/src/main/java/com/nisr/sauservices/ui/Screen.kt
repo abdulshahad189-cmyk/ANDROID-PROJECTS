@@ -1,7 +1,13 @@
 package com.nisr.sauservices.ui
 
 sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
+    object RoleSelection : Screen("role_selection")
+    object AuthOptions : Screen("auth_options/{role}") {
+        fun createRoute(role: String) = "auth_options/$role"
+    }
+    object LocationPermission : Screen("location_permission")
     object Home : Screen("home")
     object Categories : Screen("categories")
     object Bookings : Screen("bookings")
@@ -32,24 +38,39 @@ sealed class Screen(val route: String) {
     object FAQ : Screen("profile/faq")
     
     // Home Essentials Hierarchy
-    object HomeEssentialsMain : Screen("home_main")
-    object HomeEssentialsCategory : Screen("home_category/{categoryId}") {
-        fun createRoute(categoryId: String) = "home_category/$categoryId"
+    object HomeEssentialsMain : Screen("home_essentials_main")
+    object HomeEssentialsCategory : Screen("home_essentials_category/{categoryId}") {
+        fun createRoute(categoryId: String) = "home_essentials_category/$categoryId"
     }
-    object HomeEssentialsItems : Screen("home_items/{subcategoryId}") {
-        fun createRoute(subcategoryId: String) = "home_items/$subcategoryId"
+    object HomeEssentialsItems : Screen("home_essentials_items/{subcategoryId}") {
+        fun createRoute(subcategoryId: String) = "home_essentials_items/$subcategoryId"
     }
-    object HomeEssentialsCart : Screen("home_cart")
-    object HomeEssentialsCheckout : Screen("home_checkout")
-    object HomeEssentialsSuccess : Screen("home_success")
+    object HomeEssentialsCart : Screen("home_essentials_cart")
+    object HomeEssentialsCheckout : Screen("home_essentials_checkout")
+    object HomeEssentialsSuccess : Screen("home_essentials_success")
 
-    object Login : Screen("login")
+    object Login : Screen("login/{role}") {
+        fun createRoute(role: String) = "login/$role"
+    }
+    object EmailLogin : Screen("email_login")
     object PhoneLogin : Screen("phone_login")
+    object LoginSuccess : Screen("login_success/{name}") {
+        fun createRoute(name: String) = "login_success/$name"
+    }
     object BookingSummary : Screen("booking_summary")
     object BookingSuccess : Screen("service_booking_success")
     
     object ForgotPassword : Screen("forgot_password")
-    object SignUp : Screen("signup")
+    object SignUp : Screen("signup/{role}") {
+        fun createRoute(role: String) = "signup/$role"
+    }
+
+    object Register : Screen("register")
+    object Intro : Screen("intro")
+    object SignOutSuccess : Screen("sign_out_success")
+    object ResetPassword : Screen("reset_password/{email}") {
+        fun createRoute(email: String) = "reset_password/$email"
+    }
 
     // Food & Beverages
     object FoodCategories : Screen("FOODS_categories")

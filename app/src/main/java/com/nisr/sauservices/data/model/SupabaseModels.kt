@@ -217,6 +217,20 @@ data class CashPaymentModel(
 )
 
 @Serializable
+data class RazorpayPaymentModel(
+    @SerialName("id") val id: String = "",
+    @SerialName("booking_id") val bookingId: String = "",
+    @SerialName("customer_id") val customerId: String = "",
+    @SerialName("partner_id") val partnerId: String = "",
+    @SerialName("razorpay_order_id") val razorpayOrderId: String = "",
+    @SerialName("razorpay_payment_id") val razorpayPaymentId: String = "",
+    @SerialName("razorpay_signature") val razorpaySignature: String = "",
+    @SerialName("amount") val amount: Double = 0.0,
+    @SerialName("status") val status: String = "authorized", // authorized, captured, failed
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
 data class PLSCategory(
     @SerialName("id") val id: String = "",
     @SerialName("name") val name: String = "",

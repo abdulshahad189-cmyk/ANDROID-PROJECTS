@@ -1,10 +1,5 @@
 package com.nisr.sauservices.navigation
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,7 +28,6 @@ import com.nisr.sauservices.ui.onboarding.OnboardingScreen
 import com.nisr.sauservices.ui.profile.*
 import com.nisr.sauservices.ui.location.LocationPickerScreen
 import com.nisr.sauservices.ui.location.OrderTrackingScreen
-import com.nisr.sauservices.ui.payment.*
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -56,25 +50,11 @@ fun AppNavHost(navController: NavHostController) {
     val locationViewModel: LocationViewModel = viewModel()
     val mechanicViewModel: MechanicViewModel = viewModel()
     val mobilityViewModel: MobilityViewModel = viewModel()
+    val trackingViewModel: TrackingViewModel = viewModel()
     
     val newBookingsViewModel: NewBookingsViewModel = viewModel()
 
-    NavHost(
-        navController = navController, 
-        startDestination = Screen.Home.route,
-        enterTransition = { 
-            slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(250)) + fadeIn(animationSpec = tween(250)) 
-        },
-        exitTransition = { 
-            fadeOut(animationSpec = tween(250)) 
-        },
-        popEnterTransition = { 
-            fadeIn(animationSpec = tween(250)) 
-        },
-        popExitTransition = { 
-            slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(250)) + fadeOut(animationSpec = tween(250)) 
-        }
-    ) {
+    NavHost(navController, startDestination = Screen.Home.route) {
         
         // --- ONBOARDING & AUTH ---
         composable(Screen.Onboarding.route) { OnboardingScreen(navController) }
@@ -161,7 +141,7 @@ fun AppNavHost(navController: NavHostController) {
             arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
-            OrderTrackingScreen(navController, orderId)
+            OrderTrackingScreen(navController, orderId, trackingViewModel)
         }
         
         // --- PROFILE SYSTEM ---
@@ -388,71 +368,6 @@ fun AppNavHost(navController: NavHostController) {
         composable(Screen.MobilityMain.route) { MobilityMainScreen(navController, mobilityViewModel) }
         composable(Screen.MobilitySuccess.route) { 
             BookingSuccessScreen(navController, "Your ride is booked! Driver is on the way.")
-        }
-
-        // --- PAYMENT ROUTES ---
-        composable(
-            route = Screen.PaymentMethod.route,
-            arguments = listOf(
-                navArgument("bookingId") { type = NavType.StringType },
-                navArgument("customerId") { type = NavType.StringType },
-                navArgument("partnerId") { type = NavType.StringType },
-                navArgument("amount") { type = NavType.FloatType }
-            )
-        ) { backStackEntry ->
-            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
-            val cId = backStackEntry.arguments?.getString("customerId") ?: ""
-            val pId = backStackEntry.arguments?.getString("partnerId") ?: ""
-            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
-            PaymentMethodScreen(navController, bId, cId, pId, amt)
-        }
-
-        composable(
-            route = Screen.CashSuccess.route,
-            arguments = listOf(
-                navArgument("paymentId") { type = NavType.StringType },
-                navArgument("amount") { type = NavType.FloatType }
-            )
-        ) { backStackEntry ->
-            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
-            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
-            CashBookingSuccessScreen(navController, pId, amt)
-        }
-
-        composable(
-            route = Screen.CashCollection.route,
-            arguments = listOf(
-                navArgument("paymentId") { type = NavType.StringType },
-                navArgument("bookingId") { type = NavType.StringType },
-                navArgument("amount") { type = NavType.FloatType }
-            )
-        ) { backStackEntry ->
-            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
-            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
-            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
-            CashCollectionScreen(navController, pId, bId, amt)
-        }
-
-        composable(
-            route = Screen.CustomerOtp.route,
-            arguments = listOf(
-                navArgument("paymentId") { type = NavType.StringType },
-                navArgument("bookingId") { type = NavType.StringType },
-                navArgument("amount") { type = NavType.FloatType }
-            )
-        ) { backStackEntry ->
-            val pId = backStackEntry.arguments?.getString("paymentId") ?: ""
-            val bId = backStackEntry.arguments?.getString("bookingId") ?: ""
-            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
-            CustomerOtpScreen(navController, pId, bId, amt)
-        }
-
-        composable(
-            route = Screen.PaidSuccess.route,
-            arguments = listOf(navArgument("amount") { type = NavType.FloatType })
-        ) { backStackEntry ->
-            val amt = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
-            BookingSuccessScreen(navController, "Payment of ₹${amt.toInt()} received successfully!")
         }
     }
 }

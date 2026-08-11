@@ -8,8 +8,7 @@ data class UserProfile(
     val name: String = "",
     val email: String = "",
     val phone: String = "",
-    val address: String = "",
-    val profile_pic_url: String? = null,
+    @SerialName("profile_pic_url") val profilePicUrl: String? = null,
     val role: String = "customer"
 )
 

@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.nisr.sauservices.data.api.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -40,11 +41,25 @@ class LocationViewModel : ViewModel() {
     @SuppressLint("MissingPermission")
     fun getCurrentLocation(context: Context) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        
+        // Try to get last location first
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                val latLng = LatLng(it.latitude, it.longitude)
+            if (location != null) {
+                val latLng = LatLng(location.latitude, location.longitude)
                 updateCenterLocation(latLng, context)
+            } else {
+                // If last location is null, request a fresh location update
+                val priority = Priority.PRIORITY_HIGH_ACCURACY
+                fusedLocationClient.getCurrentLocation(priority, null)
+                    .addOnSuccessListener { freshLocation ->
+                        freshLocation?.let {
+                            val latLng = LatLng(it.latitude, it.longitude)
+                            updateCenterLocation(latLng, context)
+                        }
+                    }
             }
+        }.addOnFailureListener {
+            // Log or handle failure
         }
     }
 
@@ -112,7 +127,7 @@ class LocationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Update user's location in the 'users' table
+                    // Update user's location in the 'users' table or a dedicated 'locations' table
                     postgrest["users"].update({
                         set("address", uiState.address)
                         set("latitude", uiState.centerLocation.latitude)
@@ -121,7 +136,6 @@ class LocationViewModel : ViewModel() {
                         filter { eq("id", userId) }
                     }
                 }
-                // We'll rely on the UI to refresh or navigate
                 onSuccess()
             } catch (e: Exception) {
                 // Log error

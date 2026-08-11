@@ -3,9 +3,21 @@ package com.nisr.sauservices.navigation
 object Routes {
     // Auth & Onboarding
     const val ONBOARDING = "onboarding"
-    const val LOGIN = "login"
-    const val SIGNUP = "signup"
+    const val ROLE_SELECTION = "role_selection"
+    const val AUTH_OPTIONS = "auth_options/{role}"
+    const val LOGIN = "login/{role}"
+    const val SIGNUP = "signup/{role}"
+    const val REGISTER = "register"
+    const val REGISTER_CUSTOMER = "register_customer"
     const val FORGOT_PASSWORD = "forgot_password"
+
+    // Partner Registration & Dashboards
+    const val SHOPKEEPER_REGISTER = "shopkeeper_register"
+    const val SERVICE_WORKER_REGISTER = "service_worker_register"
+    const val DELIVERY_PARTNER_REGISTER = "delivery_partner_register"
+    const val SHOPKEEPER_DASHBOARD = "shopkeeper_dashboard"
+    const val SERVICE_WORKER_DASHBOARD = "service_worker_dashboard"
+    const val DELIVERY_DASHBOARD = "delivery_dashboard"
 
     // Main Core
     const val HOME = "home"
@@ -21,6 +33,7 @@ object Routes {
     const val NOTIFICATIONS = "profile/notifications"
     const val SHIPPING_ADDRESS = "profile/address"
     const val CHANGE_PASSWORD = "profile/change-password"
+    const val ADD_ACCOUNTS = "profile/add-accounts"
     const val CONTACT_US = "profile/contact"
     const val FAQ = "profile/faq"
 
@@ -77,6 +90,7 @@ object Routes {
     const val SERVICE_PAYMENT = "service_payment"
     const val SERVICE_ORDER_SUMMARY = "service_order_summary"
     const val SERVICE_BOOKING_SUCCESS = "service_booking_success"
+    const val PAID_SUCCESS = "paid_success/{amount}"
     
     // New Modules
     const val ESSENTIAL_SUPPLIES = "essential_supplies"
@@ -89,4 +103,13 @@ object Routes {
     const val PLS_BOOKING = "PLS_booking/{serviceId}"
     const val PLS_CHECKOUT = "PLS_checkout"
     const val PLS_SUCCESS = "PLS_success"
+
+    // Admin Panel
+    const val ADMIN_DASHBOARD = "ADMIN_dashboard"
+    const val ADMIN_BOOKINGS = "ADMIN_bookings"
+    const val ADMIN_SERVICES = "ADMIN_services"
+
+    // Worker Side (PLS)
+    const val WORKER_DASHBOARD = "WORKER_dashboard"
+    const val WORKER_JOBS = "WORKER_jobs"
 }

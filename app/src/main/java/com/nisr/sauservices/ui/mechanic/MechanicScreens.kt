@@ -122,7 +122,7 @@ fun MechanicSubcategoryCard(subcategory: MechanicSubcategory, onClick: () -> Uni
 @Composable
 fun MechanicBookingScreen(navController: NavController, viewModel: MechanicViewModel) {
     val uiState by viewModel.bookingState
-    var step by remember { mutableStateOf(1) }
+    var step by remember { mutableIntStateOf(1) }
     
     val garageGreen = Color(0xFF1E6355)
     val lightGreen = Color(0xFFE8F3F1)
