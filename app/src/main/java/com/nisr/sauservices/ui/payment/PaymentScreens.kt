@@ -1,5 +1,6 @@
 package com.nisr.sauservices.ui.payment
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.nisr.sauservices.ui.Screen
+import com.nisr.sauservices.ui.viewmodel.AuthViewModel
 import com.nisr.sauservices.ui.viewmodel.PaymentViewModel
 
 private val DarkBackground = Color(0xFF0D1117)
@@ -40,9 +43,12 @@ fun PaymentMethodScreen(
     customerId: String,
     partnerId: String,
     amount: Double,
-    viewModel: PaymentViewModel = viewModel()
+    viewModel: PaymentViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
     var selectedMethod by remember { mutableStateOf("upi") }
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     Scaffold(
         containerColor = DarkBackground,
@@ -80,6 +86,14 @@ fun PaymentMethodScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            if (viewModel.paymentError != null) {
+                Text(
+                    text = viewModel.paymentError!!,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
+
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -102,6 +116,19 @@ fun PaymentMethodScreen(
                     if (selectedMethod == "cash") {
                         viewModel.createCashPayment(bookingId, customerId, partnerId, amount) { paymentId ->
                             navController.navigate("cash_success/$paymentId/$amount")
+                        }
+                    } else if (activity != null) {
+                        val user = authViewModel.currentUser
+                        viewModel.startRazorpayPayment(
+                            activity = activity,
+                            bookingId = bookingId,
+                            customerId = customerId,
+                            partnerId = partnerId,
+                            amount = amount,
+                            customerEmail = user?.email ?: "customer@example.com",
+                            customerContact = "9999999999" // TODO: Get from user data if available
+                        ) {
+                            navController.navigate("paid_success/$amount")
                         }
                     }
                 },
@@ -171,6 +198,58 @@ fun PaymentCard(
 }
 
 @Composable
+fun DigitalPaymentSuccessScreen(
+    navController: NavController,
+    amount: Double
+) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DarkBackground),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                modifier = Modifier.size(100.dp),
+                shape = CircleShape,
+                color = SuccessGreen
+            ) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(60.dp).padding(20.dp))
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text("Payment Successful!", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                "Amount ₹${amount.toInt()} received successfully.",
+                textAlign = TextAlign.Center,
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(35.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(55.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentColor)
+            ) {
+                Text("Go to Home", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
 fun CashBookingSuccessScreen(
     navController: NavController,
     paymentId: String,
@@ -214,9 +293,10 @@ fun CashBookingSuccessScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(55.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentColor)
             ) {
-                Text("Go to Home")
+                Text("Go to Home", color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
     }

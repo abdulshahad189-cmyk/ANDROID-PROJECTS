@@ -1,18 +1,23 @@
 package com.nisr.sauservices.ui.home
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -24,14 +29,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.Black
-import com.nisr.sauservices.ui.theme.PrimaryBlue
-import com.nisr.sauservices.ui.theme.White
+import com.nisr.sauservices.ui.theme.OrchidPrimary
 
 data class CategoryItem(
     val name: String, 
     val route: String = "",
-    val description: String = "",
     @DrawableRes val imageRes: Int? = null
 )
 
@@ -39,67 +41,52 @@ data class CategoryItem(
 fun CategoriesGrid(
     navController: NavController, 
     showAll: Boolean = false,
-    onHomeEssentialsClick: (() -> Unit)? = null,
-    onEducationClick: (() -> Unit)? = null,
-    onBusinessClick: (() -> Unit)? = null,
-    onLifestyleClick: (() -> Unit)? = null,
-    onTechClick: (() -> Unit)? = null,
-    onMechanicClick: (() -> Unit)? = null,
-    onMobilityClick: (() -> Unit)? = null
+    onHomeEssentialsClick: () -> Unit = {},
+    onEducationClick: () -> Unit = {},
+    onBusinessClick: () -> Unit = {},
+    onLifestyleClick: () -> Unit = {},
+    onTechClick: () -> Unit = {},
+    onMechanicClick: () -> Unit = {},
+    onMobilityClick: () -> Unit = {}
 ) {
     val allCategories = listOf(
-        CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, "Daily essentials", R.drawable.essential_supplies),
-        CategoryItem("Bookings", Screen.BookingsModule.route, "All your bookings", R.drawable.bookings),
-        CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, "Home services", R.drawable.residential_services),
-        CategoryItem("Mechanical\nKit", Screen.MechanicMain.route, "Mechanic services", R.drawable.mechanic_services),
-        CategoryItem("Mobility\nKit", Screen.MobilityMain.route, "Mobility services", R.drawable.mobility_services),
-        CategoryItem("Property &\nLifestyle", Screen.PLSMain.route, "Premium lifestyle", R.drawable.property_lifestyle),
-        CategoryItem("Home\nEssentials", Screen.HomeEssentialsMain.route, "Home maintenance", R.drawable.home_essentials),
-        CategoryItem("Food &\nBeverages", Screen.FoodCategories.route, "Food & drinks", R.drawable.food_beverages),
-        CategoryItem("Education\nServices", Screen.EducationSubCategory.createRoute("Tutoring"), "Learn & grow", R.drawable.education_services),
-        CategoryItem("Business &\nProfessional", Screen.BusinessSubCategory.createRoute("Consulting"), "Business services", R.drawable.business_professional),
-        CategoryItem("Home &\nLifestyle", Screen.LifestyleSubCategory.createRoute("Home Styling"), "Lifestyle needs", R.drawable.home_lifestyle),
-        CategoryItem("Tech\nServices", Screen.TechSubCategory.createRoute("Device Repair"), "Tech solutions", R.drawable.tech_services),
-        CategoryItem("Men's\nGrooming", Screen.MensCategories.route, "Grooming needs", R.drawable.mens_grooming),
-        CategoryItem("Women's\nBeauty", Screen.WomensBeautyCategories.route, "Beauty services", R.drawable.womens_beauty),
-        CategoryItem("Healthcare &\nPharmacy", Screen.HealthcareCategories.route, "Health care", R.drawable.healthcare_pharmacy)
+        CategoryItem("Essential\nSupplies", Screen.EssentialSupplies.route, R.drawable.essential_supplies),
+        CategoryItem("Bookings", Screen.BookingsModule.route, R.drawable.bookings),
+        CategoryItem("Residential\nServices", Screen.ResidentialCategories.route, R.drawable.residential_services),
+        CategoryItem("Property &\nLifestyle", "", R.drawable.property_lifestyle),
+        CategoryItem("Home\nEssentials", "", R.drawable.home_essentials),
+        CategoryItem("Food &\nBeverages", "", R.drawable.food_beverages),
+        CategoryItem("Education\nServices", "", R.drawable.education_services),
+        CategoryItem("Business &\nProfessional", "", R.drawable.business_professional),
+        CategoryItem("Home &\nLifestyle", "", R.drawable.home_lifestyle),
+        CategoryItem("Tech\nServices", "", R.drawable.tech_services),
+        CategoryItem("Men's\nGrooming", "", R.drawable.mens_grooming),
+        CategoryItem("Women's\nBeauty", "", R.drawable.womens_beauty),
+        CategoryItem("Healthcare &\nPharmacy", "", R.drawable.healthcare_pharmacy),
+        CategoryItem("Mechanic\nServices", "", R.drawable.mechanic_services),
+        CategoryItem("Mobility\nServices", "", R.drawable.mobility_services)
     )
 
     val homeCategories = listOf(
-        allCategories[0],
-        allCategories[1],
-        allCategories[2],
-        allCategories[3],
-        allCategories[4],
-        CategoryItem("More\nServices", Screen.Categories.route, "Explore more", null)
+        allCategories[0], // Essential Supplies
+        allCategories[1], // Bookings
+        allCategories[2], // Residential Services
+        allCategories[3], // Property & Lifestyle
+        allCategories[4], // Home Essentials
+        CategoryItem("More\nServices", Screen.Categories.route, null)
     )
 
     val displayList = if (showAll) allCategories else homeCategories
 
     Column(modifier = Modifier.padding(top = 8.dp)) {
         if (!showAll) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    "Categories",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Black
-                    )
-                )
-                TextButton(
-                    onClick = { navController.navigate(Screen.Categories.route) },
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text("See all", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
+            Text(
+                "Categories",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 20.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
+            )
         }
 
         val rows = displayList.chunked(3)
@@ -114,16 +101,23 @@ fun CategoriesGrid(
                         item = item, 
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            val itemName = item.name.replace("\n", " ")
-                            when {
-                                itemName == "Home Essentials" && onHomeEssentialsClick != null -> onHomeEssentialsClick()
-                                itemName == "Education Services" && onEducationClick != null -> onEducationClick()
-                                itemName == "Business & Professional" && onBusinessClick != null -> onBusinessClick()
-                                itemName == "Home & Lifestyle" && onLifestyleClick != null -> onLifestyleClick()
-                                itemName == "Tech Services" && onTechClick != null -> onTechClick()
-                                (itemName == "Mechanical Kit" || itemName == "Mechanic Services") && onMechanicClick != null -> onMechanicClick()
-                                (itemName == "Mobility Kit" || itemName == "Mobility Services") && onMobilityClick != null -> onMobilityClick()
-                                item.route.isNotEmpty() -> navController.navigate(item.route)
+                            when (item.name.replace("\n", " ")) {
+                                "Essential Supplies" -> navController.navigate(Screen.EssentialSupplies.route)
+                                "Bookings" -> navController.navigate(Screen.BookingsModule.route)
+                                "Mechanic Services" -> onMechanicClick()
+                                "Mobility Services" -> onMobilityClick()
+                                "Residential Services" -> navController.navigate(Screen.ResidentialCategories.route)
+                                "More Services" -> navController.navigate(Screen.Categories.route)
+                                "Property & Lifestyle" -> onLifestyleClick()
+                                "Home Essentials" -> onHomeEssentialsClick()
+                                "Food & Beverages" -> { /* Navigate to Food */ }
+                                "Education Services" -> onEducationClick()
+                                "Business & Professional" -> onBusinessClick()
+                                "Home & Lifestyle" -> onLifestyleClick()
+                                "Tech Services" -> onTechClick()
+                                "Men's Grooming" -> { /* Navigate to Mens */ }
+                                "Women's Beauty" -> { /* Navigate to Womens */ }
+                                "Healthcare & Pharmacy" -> { /* Navigate to Healthcare */ }
                             }
                         }
                     )
@@ -134,71 +128,79 @@ fun CategoriesGrid(
                     }
                 }
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp)) // Increased spacing between rows
         }
     }
 }
 
-
 @Composable
 fun CategoryCard(item: CategoryItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 150)
+    )
+
+    // Removed the outer Card (big box) and using Column as the container
     Column(
         modifier = modifier
-            .clickable(onClick = onClick),
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // Removed default ripple to keep it clean
+                onClick = onClick
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
+        // Small neat square box for image/icon
+        Box(
             modifier = Modifier
-                .size(86.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = White,
-            shadowElevation = 2.dp
+                .size(72.dp) // Neater square box size
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White) // White box background
+                .padding(4.dp), // Padding inside the white box
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
+            // Inner soft shadow/light background effect for the image area
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFF9F9F9), // Light background for image container
+                shadowElevation = 1.dp
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFF9FAFB)
-                ) {
+                Box(contentAlignment = Alignment.Center) {
                     if (item.imageRes != null) {
                         Image(
                             painter = painterResource(id = item.imageRes),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            contentDescription = item.name,
+                            modifier = Modifier.fillMaxSize().padding(4.dp),
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Apps,
-                                contentDescription = null,
-                                tint = Color(0xFFE91E63),
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Rounded.Apps,
+                            contentDescription = item.name,
+                            tint = OrchidPrimary,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                 }
             }
         }
-
+        
         Spacer(Modifier.height(10.dp))
-
+        
         Text(
             text = item.name,
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
-                color = Black,
-                lineHeight = 14.sp
-            ),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
+            lineHeight = 14.sp,
+            color = Color.Black,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
 }

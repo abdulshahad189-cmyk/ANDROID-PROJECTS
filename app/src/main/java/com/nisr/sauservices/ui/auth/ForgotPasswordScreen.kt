@@ -1,8 +1,8 @@
-
 package com.nisr.sauservices.ui.auth
 
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,9 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,15 +29,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.viewmodel.AuthState
 import com.nisr.sauservices.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
 
-// Color Palette
-private val ElegantTeal = Color(0xFF0FA3A3)
-private val ElegantTealDark = Color(0xFF087E7E)
-private val SoftGreyBgEnd = Color(0xFFECEFF1)
-private val TextGrey = Color(0xFF717171)
-private val TextDark = Color(0xFF1A1C1E)
+private val SAUPink = Color(0xFFFF1E5E)
+private val PremiumDark = Color(0xFF121212)
+private val CardWhite = Color.White
+private val TextGrey = Color(0xFF757575)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +50,11 @@ fun ForgotPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     val authState by authViewModel.authState
 
     LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            navController.navigate(Screen.ResetPassword.createRoute(email)) {
+                popUpTo(Screen.ForgotPassword.route) { inclusive = true }
+            }
+        }
         if (authState is AuthState.Error) {
             Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             authViewModel.resetState()
@@ -60,53 +64,40 @@ fun ForgotPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color.White, SoftGreyBgEnd)
-                )
-            )
+            .background(PremiumDark)
     ) {
+        // Subtle Pink Glow
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 100.dp, y = (-100).dp)
+                .background(SAUPink.copy(alpha = 0.1f), CircleShape)
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
+            // Header with Navigation & Progress
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                IconButton(
+                    onClick = { 
+                        if (step > 1) {
+                            step--
+                            authViewModel.resetState()
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    IconButton(
-                        onClick = { 
-                            if (step > 1) {
-                                step--
-                                authViewModel.resetState()
-                            } else {
-                                navController.popBackStack()
-                            }
-                        }
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.size(20.dp))
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        "Back", 
-                        fontSize = 14.sp, 
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { 
-                            if (step > 1) {
-                                step--
-                                authViewModel.resetState()
-                            } else {
-                                navController.popBackStack()
-                            }
-                        }
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
                 }
 
                 Row(
@@ -115,21 +106,21 @@ fun ForgotPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     ForgotPasswordStep(1, step >= 1, step > 1)
-                    Box(modifier = Modifier.width(20.dp).height(1.dp).background(TextGrey.copy(alpha = 0.3f)))
+                    Box(modifier = Modifier.width(20.dp).height(1.dp).background(Color.White.copy(alpha = 0.2f)))
                     ForgotPasswordStep(2, step >= 2, step > 2)
-                    Box(modifier = Modifier.width(20.dp).height(1.dp).background(TextGrey.copy(alpha = 0.3f)))
+                    Box(modifier = Modifier.width(20.dp).height(1.dp).background(Color.White.copy(alpha = 0.2f)))
                     ForgotPasswordStep(3, step >= 3, step > 3)
                 }
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
-
                 Crossfade(targetState = step, label = "stepTransition") { currentStep ->
                     when (currentStep) {
                         1 -> StepEmailEntry(
@@ -148,31 +139,22 @@ fun ForgotPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                             isLoading = authState is AuthState.Loading,
                             onContinue = { 
                                 authViewModel.verifyPasswordResetOtp(email, otpCode)
-                                step = 3
                             },
                             onResend = { authViewModel.sendPasswordReset(email) }
                         )
-                        3 -> StepResetPassword(
-                            isLoading = authState is AuthState.Loading,
-                            onContinue = { newPassword ->
-                                authViewModel.updatePassword(newPassword)
-                                Toast.makeText(context, "Password updated successfully", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            }
-                        )
                     }
                 }
-                
-                Spacer(modifier = Modifier.weight(1f))
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                ) {
-                    Icon(Icons.Rounded.VerifiedUser, null, modifier = Modifier.size(14.dp), tint = ElegantTeal.copy(alpha = 0.5f))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Secure password recovery", fontSize = 12.sp, color = TextGrey)
-                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 32.dp)
+            ) {
+                Icon(Icons.Rounded.VerifiedUser, null, modifier = Modifier.size(14.dp), tint = SAUPink)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Secure password recovery", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
             }
         }
     }
@@ -184,8 +166,8 @@ fun ForgotPasswordStep(number: Int, isActive: Boolean, isCompleted: Boolean) {
         modifier = Modifier
             .size(32.dp)
             .clip(CircleShape)
-            .background(if (isActive) ElegantTeal else Color.Transparent)
-            .border(1.dp, if (isActive) ElegantTeal else TextGrey.copy(alpha = 0.3f), CircleShape),
+            .background(if (isActive) SAUPink else Color.Transparent)
+            .border(1.dp, if (isActive) SAUPink else Color.White.copy(alpha = 0.3f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         if (isCompleted) {
@@ -193,7 +175,7 @@ fun ForgotPasswordStep(number: Int, isActive: Boolean, isCompleted: Boolean) {
         } else {
             Text(
                 text = number.toString(),
-                color = if (isActive) Color.White else TextGrey,
+                color = if (isActive) Color.White else Color.White.copy(alpha = 0.5f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -201,7 +183,6 @@ fun ForgotPasswordStep(number: Int, isActive: Boolean, isCompleted: Boolean) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepEmailEntry(
     email: String,
@@ -212,46 +193,55 @@ fun StepEmailEntry(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(80.dp)
-                .background(ElegantTeal.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+                .size(100.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.Mail, null, tint = ElegantTeal, modifier = Modifier.size(32.dp))
+            // Animated Icon
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(SAUPink.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Mail, null, tint = SAUPink, modifier = Modifier.size(36.dp))
+            }
+
+            // Floating Sparkles
+            FloatingIcon(Icons.Rounded.AutoAwesome, Modifier.align(Alignment.TopStart).offset(0.dp, 0.dp), 200)
+            FloatingIcon(Icons.Rounded.Shield, Modifier.align(Alignment.BottomEnd).offset(0.dp, 0.dp), 500)
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
-        Text("Forgot Password", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextDark)
+        Text("Recovery", fontSize = 32.sp, fontWeight = FontWeight.Black, color = Color.White)
         Text(
-            "Enter your registered email and we'll send you a verification code",
+            "Enter your email to reset password",
             fontSize = 15.sp,
-            color = TextGrey,
+            color = Color.White.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Card(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            shape = RoundedCornerShape(28.dp),
+            color = CardWhite
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = onEmailChange,
-                    placeholder = { Text("Email Address") },
-                    leadingIcon = { Icon(Icons.Rounded.AlternateEmail, null, modifier = Modifier.size(20.dp)) },
+                    placeholder = { Text("Email Address", color = TextGrey) },
+                    leadingIcon = { Icon(Icons.Rounded.AlternateEmail, null, tint = SAUPink, modifier = Modifier.size(20.dp)) },
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = ElegantTeal,
-                        unfocusedBorderColor = Color(0xFFF0F0F0),
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
+                        focusedBorderColor = SAUPink,
+                        unfocusedBorderColor = Color(0xFFEEEEEE),
+                        cursorColor = SAUPink
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
@@ -263,28 +253,14 @@ fun StepEmailEntry(
                     enabled = email.isNotBlank() && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = ElegantTeal),
+                        .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues()
+                    colors = ButtonDefaults.buttonColors(containerColor = SAUPink)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                if (email.isNotBlank() && !isLoading) 
-                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
-                                else
-                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("Send Verification Code", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("SEND CODE", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     }
                 }
             }
@@ -303,199 +279,106 @@ fun StepOtpVerification(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-            modifier = Modifier
-                .size(80.dp)
-                .background(ElegantTeal.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+            modifier = Modifier.size(100.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.VpnKey, null, tint = ElegantTeal, modifier = Modifier.size(32.dp))
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(SAUPink.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.VpnKey, null, tint = SAUPink, modifier = Modifier.size(36.dp))
+            }
+            FloatingIcon(Icons.Rounded.Lock, Modifier.align(Alignment.TopEnd).offset(0.dp, 0.dp), 300)
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
-        Text("Enter Code", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextDark)
+        Text("Verify", fontSize = 32.sp, fontWeight = FontWeight.Black, color = Color.White)
         Text(
-            "We sent a 6-digit code to\n$email",
+            "Code sent to $email",
             fontSize = 15.sp,
-            color = TextGrey,
+            color = Color.White.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Card(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            shape = RoundedCornerShape(28.dp),
+            color = CardWhite
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 OutlinedTextField(
                     value = otpCode,
-                    onValueChange = { if (it.length <= 6) onOtpChange(it) },
-                    placeholder = { Text("6-Digit Code") },
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = onOtpChange,
+                    placeholder = { Text("6-Digit Code", color = TextGrey) },
+                    leadingIcon = { Icon(Icons.Rounded.VpnKey, null, tint = SAUPink, modifier = Modifier.size(20.dp)) },
                     shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = SAUPink,
+                        unfocusedBorderColor = Color(0xFFEEEEEE),
+                        cursorColor = SAUPink
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = onContinue,
-                    enabled = otpCode.length == 6 && !isLoading,
+                    enabled = otpCode.length >= 6 && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = ElegantTeal),
+                        .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues()
+                    colors = ButtonDefaults.buttonColors(containerColor = SAUPink)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                if (otpCode.length == 6 && !isLoading)
-                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
-                                else
-                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("Verify Code", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("VERIFY", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Didn't receive it? Resend Code",
-                    color = Color(0xFFE91E63),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().clickable { onResend() }
-                )
+
+                TextButton(
+                    onClick = onResend,
+                    enabled = !isLoading,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp)
+                ) {
+                    Text("Didn't receive code? Resend", color = SAUPink, fontSize = 14.sp)
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepResetPassword(
-    isLoading: Boolean,
-    onContinue: (String) -> Unit
-) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .background(ElegantTeal.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Rounded.LockReset, null, tint = ElegantTeal, modifier = Modifier.size(32.dp))
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text("New Password", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextDark)
-        Text(
-            "Create a strong password with at least 6 characters",
-            fontSize = 15.sp,
-            color = TextGrey,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+fun FloatingIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier, delay: Int) {
+    val infiniteTransition = rememberInfiniteTransition(label = "floating")
+    val translationY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, delayMillis = delay, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "yTranslation"
+    )
 
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    placeholder = { Text("New Password") },
-                    leadingIcon = { Icon(Icons.Rounded.Lock, null, modifier = Modifier.size(20.dp)) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = ElegantTeal,
-                        unfocusedBorderColor = Color(0xFFF0F0F0),
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    placeholder = { Text("Confirm Password") },
-                    leadingIcon = { Icon(Icons.Rounded.Lock, null, modifier = Modifier.size(20.dp)) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = ElegantTeal,
-                        unfocusedBorderColor = Color(0xFFF0F0F0),
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = { if (newPassword == confirmPassword) onContinue(newPassword) },
-                    enabled = newPassword.length >= 6 && newPassword == confirmPassword && !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = ElegantTeal),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                if (newPassword.length >= 6 && newPassword == confirmPassword && !isLoading)
-                                    Brush.linearGradient(listOf(ElegantTeal, ElegantTealDark))
-                                else
-                                    Brush.linearGradient(listOf(Color.LightGray, Color.Gray))
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("Reset Password", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                    }
-                }
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = SAUPink.copy(alpha = 0.3f),
+        modifier = modifier
+            .size(24.dp)
+            .graphicsLayer {
+                this.translationY = translationY
             }
-        }
-    }
+    )
 }

@@ -33,7 +33,7 @@ interface SauApiService {
     @PATCH("shop/orders/{id}")
     suspend fun updateOrderStatus(
         @Path("id") orderId: Int,
-        @Body status: Map<String, String>
+        @Body status: Map<String, String>,
     ): Response<ApiOrder>
 
     // Worker

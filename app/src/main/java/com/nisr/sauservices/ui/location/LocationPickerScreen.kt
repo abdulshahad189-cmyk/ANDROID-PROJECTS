@@ -36,14 +36,12 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.nisr.sauservices.ui.viewmodel.LocationViewModel
-import com.nisr.sauservices.ui.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerScreen(
     navController: NavController,
-    viewModel: LocationViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    viewModel: LocationViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -58,13 +56,18 @@ fun LocationPickerScreen(
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            val isGranted = permissions.values.any { it }
             hasLocationPermission = isGranted
             if (isGranted) {
                 viewModel.getCurrentLocation(context)
@@ -74,7 +77,12 @@ fun LocationPickerScreen(
 
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
-            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            launcher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         } else {
             viewModel.getCurrentLocation(context)
         }
@@ -168,7 +176,12 @@ fun LocationPickerScreen(
             FloatingActionButton(
                 onClick = { 
                     if (hasLocationPermission) viewModel.getCurrentLocation(context) 
-                    else launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    else launcher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -233,7 +246,6 @@ fun LocationPickerScreen(
                     Button(
                         onClick = { 
                             viewModel.confirmLocation { 
-                                profileViewModel.fetchUserProfile()
                                 navController.popBackStack() 
                             } 
                         },

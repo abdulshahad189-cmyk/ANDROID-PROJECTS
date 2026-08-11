@@ -1,31 +1,32 @@
 package com.nisr.sauservices.ui.home
 
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.theme.Black
-import com.nisr.sauservices.ui.theme.White
+import com.nisr.sauservices.ui.theme.OrchidPrimary
 
 data class ServiceItem(
     val name: String, 
-    @DrawableRes val imageRes: Int, 
+    val icon: ImageVector, 
     val categoryId: String
 )
 
@@ -33,10 +34,10 @@ data class ServiceItem(
 fun QuickServicesRow(navController: NavController) {
 
     val list = listOf(
-        ServiceItem("Electrician", R.drawable.electrician, "electrician"),
-        ServiceItem("Plumber", R.drawable.plumber, "plumber"),
-        ServiceItem("AC Repair", R.drawable.ac_repair, "ac_repair"),
-        ServiceItem("Cleaning", R.drawable.cleaning, "home_cleaning")
+        ServiceItem("Electrician", Icons.Rounded.ElectricBolt, "electrician"),
+        ServiceItem("Plumber", Icons.Rounded.Handyman, "plumber"),
+        ServiceItem("AC Repair", Icons.Rounded.Air, "ac_repair"),
+        ServiceItem("Cleaning", Icons.Rounded.CleaningServices, "home_cleaning")
     )
 
     Row(
@@ -44,64 +45,42 @@ fun QuickServicesRow(navController: NavController) {
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
         list.forEach { item ->
-            QuickServiceCard(item, navController)
-        }
-    }
-}
-
-@Composable
-fun QuickServiceCard(item: ServiceItem, navController: NavController) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(80.dp)
-            .clickable {
-                navController.navigate(Screen.ResidentialSubcategories.createRoute(item.categoryId))
-            }
-    ) {
-        Surface(
-            modifier = Modifier.size(80.dp), // Matched with Category boxes
-            shape = RoundedCornerShape(20.dp),
-            color = White,
-            shadowElevation = 2.dp
-        ) {
-            Box(
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
+                    .clickable {
+                        navController.navigate(Screen.ResidentialSubcategories.createRoute(item.categoryId))
+                    }
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFF9FAFB)
+                Box(
+                    modifier = Modifier
+                        .size(72.dp) // Large circles
+                        .clip(CircleShape)
+                        .background(OrchidPrimary), // Orchid Pink background
+                    contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = item.imageRes),
+                    Icon(
+                        imageVector = item.icon,
                         contentDescription = item.name,
-                        modifier = Modifier.fillMaxSize().padding(6.dp),
-                        contentScale = ContentScale.Fit
+                        tint = Color.White, // White icon on pink
+                        modifier = Modifier.size(36.dp)
                     )
                 }
+
+                Spacer(Modifier.height(10.dp))
+                
+                Text(
+                    text = item.name,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
             }
         }
-
-        Spacer(Modifier.height(10.dp))
-
-        Text(
-            text = item.name,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = Black,
-                lineHeight = 14.sp
-            ),
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }

@@ -276,7 +276,7 @@ fun PLSBookingScreen(
                     val datePicker = DatePickerDialog(
                         context,
                         { _, year, month, dayOfMonth ->
-                            selectedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
+                            selectedDate = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year)
                         },
                         calendar.get(Calendar.YEAR),
                         calendar.get(Calendar.MONTH),

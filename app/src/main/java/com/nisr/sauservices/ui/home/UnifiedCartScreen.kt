@@ -95,7 +95,7 @@ fun UnifiedCartScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { 
-                                if (dbCartItems.any { it.unit != "Booking" }) {
+                                if (dbCartItems.any { it.unit != "Booking" && it.category != "Residential" }) {
                                     navController.navigate(Screen.HomeEssentialsCheckout.route)
                                 } else {
                                     navController.navigate(Screen.ResidentialBookingDetails.route)
@@ -105,7 +105,7 @@ fun UnifiedCartScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
                         ) {
-                            val buttonText = if (dbCartItems.any { it.unit != "Booking" }) "Checkout Essentials" else "Proceed to Checkout"
+                            val buttonText = if (dbCartItems.any { it.unit != "Booking" && it.category != "Residential" }) "Checkout Essentials" else "Proceed to Checkout"
                             Text(buttonText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
@@ -127,12 +127,19 @@ fun UnifiedCartScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (resItems.isNotEmpty()) {
+                // Combine in-memory Residential and DB Residential
+                val combinedResItems = dbCartItems.filter { it.category == "Residential" }
+                if (resItems.isNotEmpty() || combinedResItems.isNotEmpty()) {
                     item { Text("Residential Services", fontWeight = FontWeight.Bold, color = PinkPrimary) }
                     items(resItems) { item ->
                         CartItemRow(item.service.name, item.service.price.toInt(), item.quantity, 
                             { residentialViewModel.updateQty(item.service.id, true) }, 
                             { residentialViewModel.updateQty(item.service.id, false) })
+                    }
+                    items(combinedResItems) { item ->
+                        CartItemRow(item.itemName, item.price.toInt(), item.quantity, 
+                            { homeCartViewModel.updateQuantity(item.itemId, item.quantity + 1) }, 
+                            { homeCartViewModel.updateQuantity(item.itemId, item.quantity - 1) })
                     }
                 }
 
@@ -155,8 +162,8 @@ fun UnifiedCartScreen(
                 }
 
                 if (dbCartItems.isNotEmpty()) {
-                    val supplyItems = dbCartItems.filter { it.unit != "Booking" }
-                    val bookingItems = dbCartItems.filter { it.unit == "Booking" }
+                    val supplyItems = dbCartItems.filter { it.unit != "Booking" && it.category != "Residential" }
+                    val bookingItems = dbCartItems.filter { it.unit == "Booking" && it.category != "Residential" }
 
                     if (supplyItems.isNotEmpty()) {
                         item { Text("Essential Supplies", fontWeight = FontWeight.Bold, color = PinkPrimary) }

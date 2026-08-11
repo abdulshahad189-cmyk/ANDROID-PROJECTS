@@ -26,7 +26,7 @@ import com.nisr.sauservices.ui.viewmodel.MobilityViewModel
 @Composable
 fun MobilityMainScreen(navController: NavController, viewModel: MobilityViewModel) {
     val uiState by viewModel.uiState
-    var step by remember { mutableStateOf(1) }
+    var step by remember { mutableIntStateOf(1) }
     
     val mobilityBlue = Color(0xFF2196F3)
     val lightBlue = Color(0xFFE3F2FD)
