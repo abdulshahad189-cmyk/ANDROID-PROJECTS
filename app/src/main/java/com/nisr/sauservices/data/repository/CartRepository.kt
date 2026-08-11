@@ -22,11 +22,26 @@ class CartRepository {
     }
 
     suspend fun addToCart(item: CartModel): Result<Unit> = try {
+        val insertData = com.nisr.sauservices.data.model.CartItemInsert(
+            userId = item.userId,
+            productId = item.productId,
+            itemName = item.itemName,
+            price = item.price,
+            unit = item.unit,
+            quantity = item.quantity,
+            category = item.category,
+            subcategory = item.subcategory,
+            totalPrice = item.totalPrice,
+            date = item.date,
+            time = item.time,
+            timestamp = item.timestamp
+        )
         withContext(Dispatchers.IO) {
-            postgrest["cart_items"].insert(item.copy(itemId = ""))
+            postgrest["cart_items"].insert(insertData)
         }
         Result.success(Unit)
     } catch (e: Exception) {
+        android.util.Log.e("CART_REPO", "Add failed: ${e.message}", e)
         Result.failure(e)
     }
 
@@ -57,8 +72,12 @@ class CartRepository {
 
     @OptIn(SupabaseExperimental::class)
     fun getCartItems(): Flow<List<CartModel>> {
+        val userId = getUserId()
         return postgrest["cart_items"]
-            .selectAsFlow(CartModel::itemId)
+            .selectAsFlow(
+                primaryKey = CartModel::itemId,
+                filter = io.github.jan.supabase.postgrest.query.filter.FilterOperation("user_id", io.github.jan.supabase.postgrest.query.filter.FilterOperator.EQ, userId)
+            )
             .map { list: List<CartModel> ->
                 list.filter { it.itemId.isNotEmpty() }
             }

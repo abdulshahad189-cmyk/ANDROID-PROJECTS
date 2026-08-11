@@ -41,7 +41,9 @@ class CartViewModel : ViewModel() {
         quantity: Int = 1
     ) {
         viewModelScope.launch {
+            val userId = repository.getCurrentUserId() ?: "anonymous"
             val item = CartModel(
+                userId = userId,
                 itemName = name,
                 price = price,
                 category = category,

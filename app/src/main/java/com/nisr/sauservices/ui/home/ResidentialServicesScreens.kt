@@ -31,10 +31,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.data.model.*
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.viewmodel.*
+import io.github.jan.supabase.auth.auth
 
 data class PaymentOptionData(val name: String, val icon: ImageVector)
 
@@ -457,13 +459,24 @@ fun ResidentialOrderSummaryScreen(
 
     val total = allCartModels.sumOf { it.totalPrice }
     val bookingResult by bookingsViewModel.bookingResult.collectAsState()
-    var showSuccess by remember { mutableStateOf(false) }
     var lastOrderId by remember { mutableStateOf("") }
 
     LaunchedEffect(bookingResult) {
         bookingResult?.let {
             if (it.isSuccess) {
                 lastOrderId = it.getOrNull() ?: ""
+                val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: ""
+                
+                // Navigate to Payment Method Screen
+                navController.navigate(Screen.PaymentMethod.createRoute(
+                    bookingId = lastOrderId,
+                    customerId = userId,
+                    partnerId = "partner_pending", // Will be assigned by backend
+                    amount = total
+                )) {
+                    popUpTo(Screen.ResidentialOrderSummary.route) { inclusive = true }
+                }
+                
                 viewModel.clearCart()
                 businessViewModel.clearCart()
                 lifestyleViewModel.clearCart()
@@ -475,7 +488,6 @@ fun ResidentialOrderSummaryScreen(
                 educationViewModel.clearCart()
                 homeCartViewModel.clearHomeCart()
                 bookingsViewModel.resetResult()
-                showSuccess = true
             } else {
                 Toast.makeText(context, "Order failed: ${it.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
                 bookingsViewModel.resetResult()
@@ -567,23 +579,5 @@ fun ResidentialOrderSummaryScreen(
                 enabled = allCartModels.isNotEmpty()
             ) { Text("Confirm Booking / Order", fontWeight = FontWeight.Bold, fontSize = 18.sp) }
         }
-    }
-
-    if (showSuccess) {
-        OrderSuccessDialog(
-            orderId = lastOrderId,
-            onViewOrder = {
-                showSuccess = false
-                navController.navigate(Screen.MyOrders.route) {
-                    popUpTo(Screen.Home.route) { inclusive = false }
-                }
-            },
-            onGoHome = {
-                showSuccess = false
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-        )
     }
 }

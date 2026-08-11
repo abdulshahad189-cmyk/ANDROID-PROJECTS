@@ -383,7 +383,7 @@ fun SignInScreen(
                 modifier = Modifier.padding(bottom = 32.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.hero_technicians),
+                    painter = painterResource(id = R.drawable.homescreen_illustration),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()

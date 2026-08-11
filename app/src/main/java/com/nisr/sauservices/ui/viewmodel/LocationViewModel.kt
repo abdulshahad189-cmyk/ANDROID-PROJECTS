@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.nisr.sauservices.data.api.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class LocationViewModel : ViewModel() {
@@ -33,25 +35,36 @@ class LocationViewModel : ViewModel() {
         val address: String = "Fetching address...",
         val landmark: String = "",
         val isFetchingAddress: Boolean = false,
-        val isLocationConfirmed: Boolean = false,
-        val error: String? = null
+        val isLocationConfirmed: Boolean = false
     )
 
     @SuppressLint("MissingPermission")
     fun getCurrentLocation(context: Context) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        
+        // Try to get last location first
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                val latLng = LatLng(it.latitude, it.longitude)
+            if (location != null) {
+                val latLng = LatLng(location.latitude, location.longitude)
                 updateCenterLocation(latLng, context)
+            } else {
+                // If last location is null, request a fresh location update
+                val priority = Priority.PRIORITY_HIGH_ACCURACY
+                fusedLocationClient.getCurrentLocation(priority, null)
+                    .addOnSuccessListener { freshLocation ->
+                        freshLocation?.let {
+                            val latLng = LatLng(it.latitude, it.longitude)
+                            updateCenterLocation(latLng, context)
+                        }
+                    }
             }
         }.addOnFailureListener {
-            uiState = uiState.copy(error = "Failed to get current location")
+            // Log or handle failure
         }
     }
 
     fun updateCenterLocation(latLng: LatLng, context: Context) {
-        uiState = uiState.copy(centerLocation = latLng, isFetchingAddress = true, error = null)
+        uiState = uiState.copy(centerLocation = latLng, isFetchingAddress = true)
         
         geocodeJob?.cancel()
         geocodeJob = viewModelScope.launch(Dispatchers.IO) {
@@ -67,7 +80,7 @@ class LocationViewModel : ViewModel() {
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
-                val fullAddress = address.getAddressLine(0)
+                val fullAddress = address.getAddressLine(0) ?: ""
                 val landmark = address.featureName ?: ""
                 
                 viewModelScope.launch(Dispatchers.Main) {
@@ -77,14 +90,10 @@ class LocationViewModel : ViewModel() {
                         isFetchingAddress = false
                     )
                 }
-            } else {
-                viewModelScope.launch(Dispatchers.Main) {
-                    uiState = uiState.copy(address = "Address not found", isFetchingAddress = false)
-                }
             }
         } catch (e: Exception) {
             viewModelScope.launch(Dispatchers.Main) {
-                uiState = uiState.copy(address = "Error fetching address", isFetchingAddress = false, error = e.message)
+                uiState = uiState.copy(address = "Error fetching address", isFetchingAddress = false)
             }
         }
     }
@@ -102,15 +111,9 @@ class LocationViewModel : ViewModel() {
                     viewModelScope.launch(Dispatchers.Main) {
                         updateCenterLocation(latLng, context)
                     }
-                } else {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        uiState = uiState.copy(error = "Location not found")
-                    }
                 }
             } catch (e: Exception) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    uiState = uiState.copy(error = "Search failed: ${e.message}")
-                }
+                // Handle search error
             }
         }
     }
@@ -123,22 +126,19 @@ class LocationViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val locationData = mapOf(
-                    "address" to uiState.address,
-                    "latitude" to uiState.centerLocation.latitude,
-                    "longitude" to uiState.centerLocation.longitude,
-                    "last_updated" to System.currentTimeMillis()
-                )
-
-                postgrest["users"].update({
-                    set("selected_location", locationData)
-                }) {
-                    filter { eq("id", userId) }
+                withContext(Dispatchers.IO) {
+                    // Update user's location in the 'users' table or a dedicated 'locations' table
+                    postgrest["users"].update({
+                        set("address", uiState.address)
+                        set("latitude", uiState.centerLocation.latitude)
+                        set("longitude", uiState.centerLocation.longitude)
+                    }) {
+                        filter { eq("id", userId) }
+                    }
                 }
-                
                 onSuccess()
             } catch (e: Exception) {
-                uiState = uiState.copy(error = "Failed to save location: ${e.message}")
+                // Log error
             }
         }
     }

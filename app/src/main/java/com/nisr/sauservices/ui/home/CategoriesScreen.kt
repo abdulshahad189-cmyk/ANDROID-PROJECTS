@@ -23,6 +23,7 @@ import com.nisr.sauservices.ui.lifestyle.LifestyleBottomSheet
 import com.nisr.sauservices.ui.tech.TechBottomSheet
 import com.nisr.sauservices.ui.mechanic.MechanicBottomSheet
 import com.nisr.sauservices.ui.mobility.MobilityBottomSheet
+import com.nisr.sauservices.ui.theme.OrchidBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

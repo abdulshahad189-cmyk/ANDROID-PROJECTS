@@ -30,12 +30,18 @@ import com.nisr.sauservices.ui.viewmodel.MechanicViewModel
 @Composable
 fun MechanicSubcategoryScreen(navController: NavController, categoryName: String, viewModel: MechanicViewModel) {
     val category = MechanicData.categories.find { it.name == categoryName }
-    val subcategories = MechanicData.subcategories.filter { it.categoryId == category?.id }
+    val showAll = categoryName == "Mechanic Services" || categoryName == "Mechanical Kit"
+    
+    val subcategories = if (showAll) {
+        emptyList() // We'll show categories instead
+    } else {
+        MechanicData.subcategories.filter { it.categoryId == category?.id }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(categoryName, fontWeight = FontWeight.Bold) },
+                title = { Text(if (showAll) "Mechanic Services" else categoryName, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -46,15 +52,47 @@ fun MechanicSubcategoryScreen(navController: NavController, categoryName: String
         },
         containerColor = Color(0xFFF7F7F7)
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(subcategories) { sub ->
-                MechanicSubcategoryCard(sub) {
-                    viewModel.updateSubcategoryId(sub.id)
-                    navController.navigate(Screen.MechanicBooking.route)
+        if (showAll) {
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(MechanicData.categories) { cat ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            navController.navigate(Screen.MechanicSubcategories.createRoute(cat.name))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(cat.icon, null, tint = Color(0xFF1E6355), modifier = Modifier.size(24.dp))
+                                Spacer(Modifier.width(16.dp))
+                                Text(cat.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E6355))
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF2D9F88))
+                        }
+                    }
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(subcategories) { sub ->
+                    MechanicSubcategoryCard(sub) {
+                        viewModel.updateSubcategoryId(sub.id)
+                        navController.navigate(Screen.MechanicBooking.route)
+                    }
                 }
             }
         }

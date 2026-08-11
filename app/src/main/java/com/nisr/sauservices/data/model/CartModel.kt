@@ -1,19 +1,37 @@
 package com.nisr.sauservices.data.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class CartModel(
-    val itemId: String = "",
-    val productId: String = "",
-    val itemName: String = "",
-    val price: Double = 0.0,
-    val unit: String = "",
-    val quantity: Int = 1,
-    val category: String = "",
-    val subcategory: String = "",
-    val totalPrice: Double = 0.0,
-    val date: String? = null,
-    val time: String? = null,
-    val timestamp: Long = System.currentTimeMillis()
+    @SerialName("id") val itemId: String = "",
+    @SerialName("user_id") val userId: String = "",
+    @SerialName("product_id") val productId: String = "",
+    @SerialName("item_name") val itemName: String = "",
+    @SerialName("price") val price: Double = 0.0,
+    @SerialName("unit") val unit: String = "",
+    @SerialName("quantity") val quantity: Int = 1,
+    @SerialName("category") val category: String = "",
+    @SerialName("subcategory") val subcategory: String = "",
+    @SerialName("total_price") val totalPrice: Double = 0.0,
+    @SerialName("date") val date: String? = null,
+    @SerialName("time") val time: String? = null,
+    @SerialName("timestamp") val timestamp: Long = System.currentTimeMillis()
+)
+
+@Serializable
+data class CartItemInsert(
+    @SerialName("user_id") val userId: String,
+    @SerialName("product_id") val productId: String,
+    @SerialName("item_name") val itemName: String,
+    @SerialName("price") val price: Double,
+    @SerialName("unit") val unit: String,
+    @SerialName("quantity") val quantity: Int,
+    @SerialName("category") val category: String,
+    @SerialName("subcategory") val subcategory: String,
+    @SerialName("total_price") val totalPrice: Double,
+    @SerialName("date") val date: String? = null,
+    @SerialName("time") val time: String? = null,
+    @SerialName("timestamp") val timestamp: Long = System.currentTimeMillis()
 )

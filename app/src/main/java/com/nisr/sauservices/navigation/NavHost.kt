@@ -1,7 +1,6 @@
 package com.nisr.sauservices.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -10,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.nisr.sauservices.data.local.SessionManager
-import com.nisr.sauservices.data.repository.UserRepository
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.auth.*
 import com.nisr.sauservices.ui.essentials.*
@@ -35,7 +33,6 @@ import com.nisr.sauservices.ui.location.OrderTrackingScreen
 fun AppNavHost(navController: NavHostController) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
-    val userRepository = UserRepository()
     
     // Global ViewModels
     val cartViewModel: CartViewModel = viewModel()
@@ -53,42 +50,50 @@ fun AppNavHost(navController: NavHostController) {
     val locationViewModel: LocationViewModel = viewModel()
     val mechanicViewModel: MechanicViewModel = viewModel()
     val mobilityViewModel: MobilityViewModel = viewModel()
-    
-    // New Module ViewModels
-    val newBookingsViewModel: NewBookingsViewModel = viewModel()
     val trackingViewModel: TrackingViewModel = viewModel()
+    
+    val newBookingsViewModel: NewBookingsViewModel = viewModel()
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash.route
-    ) {
+    NavHost(navController, startDestination = Screen.Home.route) {
         
-        // ========================================================
-        // SPLASH
-        // ========================================================
-        composable(route = Screen.Splash.route) {
-            SplashScreen(
-                onFinished = {
-                    navController.navigate(Screen.Intro.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
-            )
+        // --- ONBOARDING & AUTH ---
+        composable(Screen.Onboarding.route) { OnboardingScreen(navController) }
+        
+        composable(Screen.Login.route) {
+            SignInScreen(navController) 
         }
 
-        // ========================================================
-        // INTRO
-        // ========================================================
-        composable(route = Screen.Intro.route) {
-            IntroScreen(navController = navController)
+        composable(Screen.SignUp.route) {
+            SignUpScreen(navController)
         }
+        
+        composable(Screen.ForgotPassword.route) { ForgotPasswordScreen(navController) }
 
-        // ========================================================
-        // ONBOARDING
-        // ========================================================
-        composable(route = Screen.Onboarding.route) {
-            OnboardingScreen(navController = navController)
-        }
+        // --- CUSTOMER HOME & CORE ---
+        homeNavGraph(
+            navController = navController,
+            sessionManager = sessionManager,
+            bookingsViewModel = bookingsViewModel,
+            residentialViewModel = residentialViewModel
+        )
+
+        composable(Screen.Categories.route) { CategoriesScreen(navController) }
+        
+        // --- SERVICES & BOOKINGS ---
+        bookingNavGraph(
+            navController = navController,
+            residentialViewModel = residentialViewModel,
+            businessViewModel = businessViewModel,
+            lifestyleViewModel = lifestyleViewModel,
+            techViewModel = techViewModel,
+            mensGroomingViewModel = mensGroomingViewModel,
+            womensBeautyViewModel = womensBeautyViewModel,
+            healthcareViewModel = healthViewModel,
+            bookingsViewModel = bookingsViewModel,
+            foodCartViewModel = foodCartViewModel,
+            homeCartViewModel = cartViewModel,
+            educationCartViewModel = educationCartViewModel
+        )
 
         // --- NEW MODULES ---
         composable(Screen.EssentialSupplies.route) {
@@ -138,88 +143,6 @@ fun AppNavHost(navController: NavHostController) {
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             OrderTrackingScreen(navController, orderId, trackingViewModel)
         }
-        
-        // Role selection is removed, redirected to Login as customer
-        composable(Screen.RoleSelection.route) { 
-            LaunchedEffect(Unit) {
-                navController.navigate(Screen.Login.createRoute("customer")) {
-                    popUpTo(Screen.RoleSelection.route) { inclusive = true }
-                }
-            }
-        }
-        
-        composable(
-            route = Screen.AuthOptions.route,
-            arguments = listOf(navArgument("role") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role") ?: "customer"
-            SignInScreen(navController, role)
-        }
-        
-        composable(
-            route = Screen.Login.route,
-            arguments = listOf(navArgument("role") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role") ?: "customer"
-            SignInScreen(navController, role) 
-        }
-
-        composable(Screen.EmailLogin.route) {
-            LoginScreen(navController)
-        }
-
-        composable(Screen.PhoneLogin.route) {
-            PhoneLoginScreen(navController)
-        }
-        
-        composable(
-            route = Screen.SignUp.route,
-            arguments = listOf(navArgument("role") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role") ?: "customer"
-            SignUpScreen(navController, role)
-        }
-        
-        composable(Screen.Register.route) { SignUpScreen(navController, "customer") }
-        composable(Screen.ForgotPassword.route) { ForgotPasswordScreen(navController) }
-        
-        composable(
-            route = Screen.ResetPassword.route,
-            arguments = listOf(navArgument("email") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-            ResetPasswordScreen(navController, email)
-        }
-
-        composable(Screen.SignOutSuccess.route) {
-            SignOutSuccessScreen(navController)
-        }
-
-        // Integrate HomeNavGraph (Includes Customer Home and PLS)
-        homeNavGraph(
-            navController = navController,
-            sessionManager = sessionManager,
-            bookingsViewModel = bookingsViewModel,
-            residentialViewModel = residentialViewModel
-        )
-
-        composable(Screen.Categories.route) { CategoriesScreen(navController) }
-        
-        // Integrate BookingNavGraph
-        bookingNavGraph(
-            navController = navController,
-            residentialViewModel = residentialViewModel,
-            businessViewModel = businessViewModel,
-            lifestyleViewModel = lifestyleViewModel,
-            techViewModel = techViewModel,
-            mensGroomingViewModel = mensGroomingViewModel,
-            womensBeautyViewModel = womensBeautyViewModel,
-            healthcareViewModel = healthViewModel,
-            bookingsViewModel = bookingsViewModel,
-            foodCartViewModel = foodCartViewModel,
-            homeCartViewModel = cartViewModel,
-            educationCartViewModel = educationCartViewModel
-        )
         
         // --- PROFILE SYSTEM ---
         composable(Screen.Profile.route) { ProfileScreen(navController, profileViewModel) }

@@ -39,6 +39,7 @@ import com.nisr.sauservices.R
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.components.PremiumInput
 import com.nisr.sauservices.ui.theme.*
+import com.nisr.sauservices.ui.theme.SAULightGray
 import com.nisr.sauservices.ui.viewmodel.AuthState
 import com.nisr.sauservices.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay

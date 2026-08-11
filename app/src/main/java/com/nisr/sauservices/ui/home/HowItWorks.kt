@@ -8,18 +8,21 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nisr.sauservices.ui.theme.PinkPrimary
+import com.nisr.sauservices.ui.theme.Black
+import com.nisr.sauservices.ui.theme.GrayText
+import com.nisr.sauservices.ui.theme.LightGray
+import com.nisr.sauservices.ui.theme.PrimaryBlue
 
 data class HowItWorksItem(val name: String, val icon: ImageVector)
 
@@ -27,23 +30,25 @@ data class HowItWorksItem(val name: String, val icon: ImageVector)
 fun HowItWorks() {
 
     val list = listOf(
-        HowItWorksItem("Choose Service", Icons.Outlined.EditCalendar),
-        HowItWorksItem("Select Date & Time", Icons.Outlined.CalendarMonth),
-        HowItWorksItem("Get Professional at Home", Icons.Outlined.CheckCircle)
+        HowItWorksItem("Choose\nService", Icons.Outlined.EditCalendar),
+        HowItWorksItem("Select Date\n& Time", Icons.Outlined.CalendarMonth),
+        HowItWorksItem("Get Pro\nat Home", Icons.Outlined.CheckCircle)
     )
 
-    Column(modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)) {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
             "How It Works",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Black
+            ),
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // Added spacing between items
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             list.forEach { item ->
                 Column(
@@ -52,28 +57,30 @@ fun HowItWorks() {
                 ) {
                     Box(
                         Modifier
-                            .size(75.dp) // Slightly larger
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color(0xFFFFF0F5)), // Softer pink background
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(LightGray),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             item.icon, 
                             null, 
-                            tint = PinkPrimary, 
-                            modifier = Modifier.size(34.dp)
+                            tint = PrimaryBlue, 
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(8.dp))
                     
                     Text(
                         item.name, 
-                        fontSize = 11.sp, 
-                        fontWeight = FontWeight.Bold, // Bolder for better visibility
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 11.sp, 
+                            fontWeight = FontWeight.Medium,
+                            color = GrayText
+                        ),
                         textAlign = TextAlign.Center,
-                        lineHeight = 14.sp,
-                        color = Color.DarkGray
+                        lineHeight = 14.sp
                     )
                 }
             }

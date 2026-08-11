@@ -18,10 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.ui.Screen
-import com.nisr.sauservices.ui.home.OrderSuccessDialog
 import com.nisr.sauservices.ui.theme.PinkPrimary
 import com.nisr.sauservices.ui.viewmodel.CartViewModel
+import io.github.jan.supabase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,14 +37,24 @@ fun SuppliesCheckoutScreen(navController: NavController, viewModel: CartViewMode
     val grandTotal = itemTotal + deliveryCharge + tax
     
     val orderStatus by viewModel.orderStatus.collectAsState()
-    var showSuccess by remember { mutableStateOf(false) }
     var orderId by remember { mutableStateOf("") }
 
     LaunchedEffect(orderStatus) {
         orderStatus?.let {
             if (it.isSuccess) {
                 orderId = it.getOrNull() ?: "ORD${System.currentTimeMillis() % 1000000}"
-                showSuccess = true
+                val userId = SupabaseClient.client.auth.currentUserOrNull()?.id ?: ""
+                
+                // Navigate to Payment Method Screen
+                navController.navigate(Screen.PaymentMethod.createRoute(
+                    bookingId = orderId,
+                    customerId = userId,
+                    partnerId = "partner_pending",
+                    amount = grandTotal
+                )) {
+                    popUpTo(Screen.HomeEssentialsCheckout.route) { inclusive = true }
+                }
+                viewModel.resetOrderStatus()
             }
         }
     }
@@ -119,26 +130,6 @@ fun SuppliesCheckoutScreen(navController: NavController, viewModel: CartViewMode
             PaymentOptionRow("UPI", Icons.Default.QrCode, selectedPayment == "UPI") { selectedPayment = "UPI" }
             PaymentOptionRow("Cash on Delivery", Icons.Default.Payments, selectedPayment == "COD") { selectedPayment = "COD" }
         }
-    }
-
-    if (showSuccess) {
-        OrderSuccessDialog(
-            orderId = orderId,
-            onViewOrder = {
-                showSuccess = false
-                viewModel.resetOrderStatus()
-                navController.navigate(Screen.MyOrders.route) {
-                    popUpTo(Screen.Home.route) { inclusive = false }
-                }
-            },
-            onGoHome = {
-                showSuccess = false
-                viewModel.resetOrderStatus()
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-        )
     }
 }
 

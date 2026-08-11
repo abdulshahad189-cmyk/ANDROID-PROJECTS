@@ -10,13 +10,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.nisr.sauservices.data.api.SupabaseConfig
 import com.nisr.sauservices.navigation.AppNavHost
+import com.nisr.sauservices.ui.payment.PaymentEvent
+import com.nisr.sauservices.ui.payment.PaymentResultBus
 import com.nisr.sauservices.ui.theme.AppTheme
+import com.razorpay.PaymentData
+import com.razorpay.PaymentResultWithDataListener
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -50,6 +56,18 @@ class MainActivity : ComponentActivity() {
                 // Let AppNavHost handle the Splash screen as its start destination
                 AppNavHost(navController)
             }
+        }
+    }
+
+    override fun onPaymentSuccess(paymentId: String?, data: PaymentData?) {
+        lifecycleScope.launch {
+            PaymentResultBus.post(PaymentEvent.Success(paymentId, data))
+        }
+    }
+
+    override fun onPaymentError(code: Int, description: String?, data: PaymentData?) {
+        lifecycleScope.launch {
+            PaymentResultBus.post(PaymentEvent.Error(code, description, data))
         }
     }
 }

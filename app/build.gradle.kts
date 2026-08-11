@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     // alias(libs.plugins.google.services) // Disabled to fix missing google-services.json error
     alias(libs.plugins.kotlin.serialization)
@@ -32,9 +31,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -81,6 +77,7 @@ dependencies {
     // Ktor
     implementation(platform(libs.ktor.bom))
     implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.auth)
@@ -98,6 +95,9 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
+
+    // Razorpay
+    implementation(libs.razorpay.checkout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

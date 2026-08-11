@@ -2,7 +2,11 @@ package com.nisr.sauservices.ui.home
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.outlined.Assignment
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,8 +31,8 @@ fun BottomNavBar(
     ) {
         val items = listOf(
             NavigationItem("Home", Screen.Home.route, Icons.Outlined.Home),
-            NavigationItem("Categories", Screen.Categories.route, Icons.Outlined.Category),
-            NavigationItem("Orders", Screen.MyOrders.route, Icons.Outlined.ReceiptLong),
+            NavigationItem("Categories", Screen.Categories.route, Icons.Outlined.GridView),
+            NavigationItem("Orders", Screen.MyOrders.route, Icons.AutoMirrored.Outlined.Assignment),
             NavigationItem("Track", Screen.OrderTracking.route, Icons.Outlined.MyLocation),
             NavigationItem("Profile", Screen.Profile.route, Icons.Outlined.Person)
         )

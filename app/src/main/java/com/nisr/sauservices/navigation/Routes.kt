@@ -90,6 +90,7 @@ object Routes {
     const val SERVICE_PAYMENT = "service_payment"
     const val SERVICE_ORDER_SUMMARY = "service_order_summary"
     const val SERVICE_BOOKING_SUCCESS = "service_booking_success"
+    const val PAID_SUCCESS = "paid_success/{amount}"
     
     // New Modules
     const val ESSENTIAL_SUPPLIES = "essential_supplies"
