@@ -5,14 +5,10 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.nisr.sauservices.data.api.SupabaseConfig
+import com.nisr.sauservices.data.api.SupabaseClient
 import com.nisr.sauservices.navigation.AppNavHost
 import com.nisr.sauservices.ui.payment.PaymentEvent
 import com.nisr.sauservices.ui.payment.PaymentResultBus
@@ -29,7 +25,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         super.onCreate(savedInstanceState)
 
         // Supabase Connection Test
-        val client = SupabaseConfig.client
+        val client = SupabaseClient.client
 
         setContent {
 
@@ -47,7 +43,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
                     Log.e(
                         "SUPABASE_TEST",
-                        "Init Error: ${e.message}"
+                        "Init Error: ${e.message}",
                     )
                 }
             }

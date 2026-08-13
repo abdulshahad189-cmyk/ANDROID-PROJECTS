@@ -30,7 +30,7 @@ fun SuppliesCheckoutScreen(navController: NavController, viewModel: CartViewMode
     val cartItems by viewModel.dbCartItems.collectAsState()
     var address by remember { mutableStateOf("") }
     var selectedPayment by remember { mutableStateOf("UPI") }
-    
+
     val itemTotal = cartItems.sumOf { it.totalPrice }
     val deliveryCharge = 30.0
     val tax = itemTotal * 0.05

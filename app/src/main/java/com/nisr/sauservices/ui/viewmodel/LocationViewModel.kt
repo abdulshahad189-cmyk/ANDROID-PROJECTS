@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class LocationViewModel : ViewModel() {
 
@@ -35,7 +36,7 @@ class LocationViewModel : ViewModel() {
         val address: String = "Fetching address...",
         val landmark: String = "",
         val isFetchingAddress: Boolean = false,
-        val isLocationConfirmed: Boolean = false
+        val isLocationConfirmed: Boolean = false,
     )
 
     @SuppressLint("MissingPermission")
@@ -68,7 +69,7 @@ class LocationViewModel : ViewModel() {
         
         geocodeJob?.cancel()
         geocodeJob = viewModelScope.launch(Dispatchers.IO) {
-            delay(500)
+            delay(500.milliseconds)
             reverseGeocode(latLng, context)
         }
     }
@@ -87,11 +88,11 @@ class LocationViewModel : ViewModel() {
                     uiState = uiState.copy(
                         address = fullAddress,
                         landmark = landmark,
-                        isFetchingAddress = false
+                        isFetchingAddress = false,
                     )
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             viewModelScope.launch(Dispatchers.Main) {
                 uiState = uiState.copy(address = "Error fetching address", isFetchingAddress = false)
             }
@@ -112,33 +113,54 @@ class LocationViewModel : ViewModel() {
                         updateCenterLocation(latLng, context)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Handle search error
             }
         }
     }
 
-    fun confirmLocation(onSuccess: () -> Unit) {
-        val userId = auth.currentUserOrNull()?.id ?: return
+    fun confirmLocation(context: Context, onSuccess: () -> Unit) {
+        val sessionManager = com.nisr.sauservices.data.local.SessionManager(context)
         
         // Prevent saving invalid addresses
-        if (uiState.address == "Fetching address..." || uiState.isFetchingAddress) return
+        if ((uiState.address == "Fetching address...") || uiState.isFetchingAddress) return
+
+        // 1. Save locally first for immediate UI update
+        sessionManager.saveLocation(
+            uiState.centerLocation.latitude,
+            uiState.centerLocation.longitude,
+            uiState.address,
+        )
+
+        val userId = auth.currentUserOrNull()?.id
+        
+        if (userId == null) {
+            // Even if not logged in to Supabase, we let the user proceed with local location
+            onSuccess()
+            return
+        }
 
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Update user's location in the 'users' table or a dedicated 'locations' table
-                    postgrest["users"].update({
-                        set("address", uiState.address)
-                        set("latitude", uiState.centerLocation.latitude)
-                        set("longitude", uiState.centerLocation.longitude)
-                    }) {
+                    // Update user's location in the 'users' table
+                    postgrest["users"].update(
+                        update = {
+                            set("address", uiState.address)
+                            set("latitude", uiState.centerLocation.latitude)
+                            set("longitude", uiState.centerLocation.longitude)
+                        },
+                    ) {
                         filter { eq("id", userId) }
                     }
                 }
                 onSuccess()
-            } catch (e: Exception) {
-                // Log error
+            } catch (_: Exception) {
+                // If network update fails, we still have local data saved above
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(context, "Location saved locally", android.widget.Toast.LENGTH_SHORT).show()
+                    onSuccess()
+                }
             }
         }
     }

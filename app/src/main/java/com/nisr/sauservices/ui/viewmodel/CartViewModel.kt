@@ -38,10 +38,10 @@ class CartViewModel : ViewModel() {
         productId: String,
         date: String? = null,
         time: String? = null,
-        quantity: Int = 1
+        quantity: Int = 1,
     ) {
         viewModelScope.launch {
-            val userId = repository.getCurrentUserId() ?: "anonymous"
+            val userId = repository.getCurrentUserId() ?: return@launch
             val item = CartModel(
                 userId = userId,
                 itemName = name,
@@ -53,7 +53,7 @@ class CartViewModel : ViewModel() {
                 date = date,
                 time = time,
                 quantity = quantity,
-                totalPrice = price * quantity
+                totalPrice = price * quantity,
             )
             cartRepository.addToCart(item)
         }
@@ -64,24 +64,22 @@ class CartViewModel : ViewModel() {
     }
 
     fun addHomeProduct(product: HomeProduct) {
-        val existingItem = _dbCartItems.value.find { it.productId == product.id }
-        if (existingItem != null) {
+        _dbCartItems.value.find { it.productId == product.id }?.let { existingItem ->
             updateQuantity(existingItem.itemId, existingItem.quantity + 1)
-        } else {
+        } ?: run {
             addItemToCart(
                 name = product.name,
                 price = product.price.toDouble(),
                 category = product.category,
                 subcategory = "", 
                 unit = product.unit,
-                productId = product.id
+                productId = product.id,
             )
         }
     }
 
     fun removeHomeProduct(productId: String) {
-        val existingItem = _dbCartItems.value.find { it.productId == productId }
-        if (existingItem != null) {
+        _dbCartItems.value.find { it.productId == productId }?.let { existingItem ->
             if (existingItem.quantity > 1) {
                 updateQuantity(existingItem.itemId, existingItem.quantity - 1)
             } else {
@@ -108,7 +106,7 @@ class CartViewModel : ViewModel() {
         }
     }
 
-    fun placeOrder(address: String, paymentMethod: String = "Cash on Delivery") {
+    fun placeOrder(address: String, @Suppress("UNUSED_PARAMETER") paymentMethod: String = "Cash on Delivery") {
         viewModelScope.launch {
             val items = _dbCartItems.value
             if (items.isEmpty()) return@launch
