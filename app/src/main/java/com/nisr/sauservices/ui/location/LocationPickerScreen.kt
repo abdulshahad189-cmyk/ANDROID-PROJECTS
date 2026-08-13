@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -33,7 +32,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.nisr.sauservices.ui.viewmodel.LocationViewModel
 
@@ -41,7 +39,7 @@ import com.nisr.sauservices.ui.viewmodel.LocationViewModel
 @Composable
 fun LocationPickerScreen(
     navController: NavController,
-    viewModel: LocationViewModel = viewModel()
+    viewModel: LocationViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -53,34 +51,33 @@ fun LocationPickerScreen(
 
     var hasLocationPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(
+            (ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED) ||
+            (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED)
         )
     }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { permissions ->
-            val isGranted = permissions.values.any { it }
-            hasLocationPermission = isGranted
-            if (isGranted) {
-                viewModel.getCurrentLocation(context)
-            }
+    ) { permissions ->
+        val isGranted = permissions.values.any { it }
+        hasLocationPermission = isGranted
+        if (isGranted) {
+            viewModel.getCurrentLocation(context)
         }
-    )
+    }
 
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
             launcher.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
                 )
             )
         } else {
@@ -151,17 +148,21 @@ fun LocationPickerScreen(
                     leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { 
-                                viewModel.searchLocation(searchQuery, context)
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.searchLocation(searchQuery, context)
+                                },
+                            ) {
                                 Icon(Icons.Default.MyLocation, null, tint = Color(0xFFE91E63))
                             }
                         }
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {
-                        viewModel.searchLocation(searchQuery, context)
-                    }),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            viewModel.searchLocation(searchQuery, context)
+                        },
+                    ),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
@@ -245,7 +246,7 @@ fun LocationPickerScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(
                         onClick = { 
-                            viewModel.confirmLocation { 
+                            viewModel.confirmLocation(context) { 
                                 navController.popBackStack() 
                             } 
                         },
@@ -256,8 +257,8 @@ fun LocationPickerScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
                     ) {
                         Text(
-                            "Confirm Location", 
-                            fontSize = 16.sp, 
+                            "Confirm Location",
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )

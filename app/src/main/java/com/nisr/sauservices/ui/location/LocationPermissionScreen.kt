@@ -1,5 +1,7 @@
 package com.nisr.sauservices.ui.location
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -13,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +25,7 @@ import androidx.navigation.NavController
 import com.nisr.sauservices.ui.Screen
 import com.nisr.sauservices.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Premium Location Permission screen for SAU Services.
@@ -31,10 +33,23 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun LocationPermissionScreen(navController: NavController) {
-    var visible by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(value = false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        val isGranted = permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, defaultValue = false) ||
+                        permissions.getOrDefault(android.Manifest.permission.ACCESS_COARSE_LOCATION, defaultValue = false)
+        
+        if (isGranted) {
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.LocationPermission.route) { inclusive = true }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
-        delay(300)
+        delay(300.milliseconds)
         visible = true
     }
 
@@ -42,14 +57,19 @@ fun LocationPermissionScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .systemBarsPadding()
+            .systemBarsPadding(),
     ) {
         // Subtle Skip Button
         TextButton(
-            onClick = { navController.popBackStack() },
+            onClick = { 
+                // Navigate forward even if skipped (Guest mode logic)
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.LocationPermission.route) { inclusive = true }
+                }
+            },
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Text(
                 text = "Skip",
@@ -74,7 +94,7 @@ fun LocationPermissionScreen(navController: NavController) {
             // 2. Trust-Building Explanation (Slide + Fade)
             AnimatedVisibility(
                 visible = visible,
-                enter = slideInVertically(initialOffsetY = { 40 }) + fadeIn(animationSpec = tween(800)),
+                enter = slideInVertically { 40 } + fadeIn(animationSpec = tween(800)),
                 label = "content_entrance"
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -106,16 +126,17 @@ fun LocationPermissionScreen(navController: NavController) {
             // 3. Primary CTA Button (Staggered Entrance)
             AnimatedVisibility(
                 visible = visible,
-                enter = slideInVertically(initialOffsetY = { 80 }) + fadeIn(animationSpec = tween(800, delayMillis = 200)),
+                enter = slideInVertically { 80 } + fadeIn(animationSpec = tween(800, delayMillis = 200)),
                 label = "button_entrance"
             ) {
                 Button(
                     onClick = { 
-                        // Implementation: Trigger system permission request
-                        // For demo: Navigate to Home
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.LocationPermission.route) { inclusive = true }
-                        }
+                        permissionLauncher.launch(
+                            arrayOf(
+                                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -176,7 +197,7 @@ private fun LocationIllustration(visible: Boolean) {
         Canvas(modifier = Modifier.size(80.dp)) {
             drawCircle(
                 color = OrchidPink,
-                radius = size.minDimension / 2 * scale,
+                radius = (size.minDimension / 2) * scale,
                 alpha = alpha,
                 style = Stroke(width = 3.dp.toPx())
             )

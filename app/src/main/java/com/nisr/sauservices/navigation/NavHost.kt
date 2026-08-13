@@ -27,6 +27,7 @@ import com.nisr.sauservices.ui.mobility.*
 import com.nisr.sauservices.ui.onboarding.OnboardingScreen
 import com.nisr.sauservices.ui.profile.*
 import com.nisr.sauservices.ui.location.LocationPickerScreen
+import com.nisr.sauservices.ui.location.LocationPermissionScreen
 import com.nisr.sauservices.ui.location.OrderTrackingScreen
 
 @Composable
@@ -54,10 +55,43 @@ fun AppNavHost(navController: NavHostController) {
     
     val newBookingsViewModel: NewBookingsViewModel = viewModel()
 
-    NavHost(navController, startDestination = Screen.Home.route) {
+    NavHost(navController, startDestination = Screen.Splash.route) {
         
+        // --- SPLASH ---
+        composable(Screen.Splash.route) {
+            SplashScreen(onFinished = {
+                // 1. Check for location permission first
+                val hasLocationPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+                if (!hasLocationPermission) {
+                    navController.navigate(Screen.LocationPermission.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                    return@SplashScreen
+                }
+
+                // 2. Then check for login session
+                if (sessionManager.isLoggedIn()) {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            })
+        }
+
         // --- ONBOARDING & AUTH ---
         composable(Screen.Onboarding.route) { OnboardingScreen(navController) }
+        
+        composable(Screen.LocationPermission.route) {
+            LocationPermissionScreen(navController)
+        }
         
         composable(Screen.Login.route) {
             SignInScreen(navController) 
